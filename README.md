@@ -11,9 +11,9 @@ For community memebers it offers a platform to learn more about community and cr
 Not to be tied down to simple development projects, UP has been designed to support a range of different projects all geared towards community, development, and sustainability. From digital to creative to humanitarian, offering artists, developers, and communities the ability to promote and generate support for their work, through a feeless donations system utilising the IOTA network for fee-less transactions through the Firefly Wallet.
 
 The three main categories are:
-### - Community
-### - Creative
-### - Technology
+- Community
+- Creative
+- Technology
 
 ## getting started
 
@@ -34,4 +34,5 @@ If you would like to learn more, support us, or contribute, please feel free to 
 
 ## Donations
 UP is an open community project developed and maintained by volunteers. To help support our continued work to maintain and enhance the UP system you can donate through Firefly using the address below:
+
 iota1qpdq7dh8ewz9ge7lncygkn6xmmvpdeqka29egsr72djcxdhfwcmv2a656wa
