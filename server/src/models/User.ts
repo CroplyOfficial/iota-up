@@ -32,6 +32,9 @@ const UserSchema = new mongoose.Schema({
   },
   country: {
     type: String
+  },
+  connections: {
+    type: Array
   }
 });
 
@@ -44,7 +47,8 @@ export interface UserType extends mongoose.Document {
   isAdmin: boolean;
   wallet: string;
   city: string;
-  country: string
+  country: string;
+  connections: Array<string>;
 };
 
 const User = mongoose.model('User', UserSchema);
