@@ -6,6 +6,11 @@ import {
   getAccessTokenFromCode,
   getFacebookUserData,
 } from './sso/facebook';
+import {
+  getLinkedinURI,
+  getLinkedinAccessToken,
+  getLinkedinUser,
+} from './sso/linkedin';
 import asyncHandler from 'express-async-handler';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User';
@@ -155,4 +160,72 @@ const loginFacebookUser = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
-export { authGoogle, loginGoogleUser, authFacebook, loginFacebookUser };
+/**
+ * Redirect to linked auth URL
+ *
+ * @route     /api/users/authlinkedin
+ * @redirects linkedin auth URL
+ */
+
+const authLinkedin = asyncHandler(async (req: Request, res: Response) => {
+  res.redirect(getLinkedinURI());
+});
+
+/**
+ * Login the user with linkedin and if
+ * the user exists add linkedin to one of
+ * the connections else create new user
+ *
+ * @route     /api/users/successlinkedin
+ * @returns   {Object} userData
+ */
+
+const loginLinkedin = asyncHandler(async (req: Request, res: Response) => {
+  const code: any = req.query.code;
+  const token = await getLinkedinAccessToken(code);
+  const userData: any = await getLinkedinUser(token);
+
+  const user_exists = await User.findOne({ email: userData.email });
+
+  if (user_exists) {
+    user_exists.connections.includes('linkedin')
+      ? null
+      : user_exists.connections.push('linkedin');
+    await user_exists.save();
+    const token = jwt.sign(
+      { id: user_exists._id },
+      process.env.JWT_SECRET || 'fallbacksecret'
+    );
+    res.json({
+      token,
+      ...user_exists._doc,
+    });
+  } else {
+    const user = await User.create({
+      firstName: userData.localizedFirstName,
+      lastName: userData.localizedLastName,
+      email: userData.email,
+      avatar: userData.avatar,
+      connections: ['linkedin'],
+    });
+
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET || 'fallbacksecret'
+    );
+
+    res.json({
+      token,
+      ...user._doc,
+    });
+  }
+});
+
+export {
+  authGoogle,
+  loginGoogleUser,
+  authFacebook,
+  loginFacebookUser,
+  authLinkedin,
+  loginLinkedin,
+};
