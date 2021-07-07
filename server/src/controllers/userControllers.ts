@@ -1,11 +1,12 @@
 import { Request, Response } from 'express';
-import { google } from 'googleapis';
 import axios from 'axios';
 import {
   getGoogleAuthURL,
   getTokens
 } from './sso/google';
 import asyncHandler from 'express-async-handler';
+import jwt from 'jsonwebtoken';
+import { User } from '../models/User';
 
 /**
  * Get the google authorization token and redirect to
@@ -38,10 +39,7 @@ const loginGoogleUser = asyncHandler(async (req: Request, res: Response) => {
     });
 
     // Fetch the user's profile with the access token and bearer
-    const googleUser = await axios
-      .get(
-        `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${access_token}`,
-        {
+    const googleUser = await axios.get(`https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${access_token}`, {
           headers: {
             Authorization: `Bearer ${id_token}`,
           },
@@ -51,7 +49,33 @@ const loginGoogleUser = asyncHandler(async (req: Request, res: Response) => {
       .catch(() => {
         throw new Error('User not found');
       });
-    console.log(googleUser)
+
+    const user_exists = await User.findOne({ email: googleUser.email });
+
+    if (user_exists) {
+      user_exists.connections.includes('google') ? null : user_exists.connections.push('google');
+      await user_exists.save();
+      const token = jwt.sign({ id: user_exists._id }, process.env.JWT_SECRET || 'fallbacksecret');
+      res.json({
+        token,
+        ...user_exists._doc
+      });
+    } else {
+      const user = await User.create({
+        firstName: googleUser.given_name,
+        lastName: googleUser.family_name,
+        avatar: googleUser.picture,
+        email: googleUser.email,
+        connections: [ 'google' ]
+      });
+
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'fallbacksecret');
+
+      res.json({
+        token,
+        ...user._doc
+      });
+    }
   } catch (error) {
    throw (error);
   }

@@ -10,9 +10,14 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  avatar: {
+    type: String,
+    default: '/images/defaultavatar.png'
+  },
   email: {
     type: String,
-    required: true
+    required: true,
+    unique: true
   },
   isBanned: {
     type: Boolean,
@@ -42,6 +47,7 @@ const UserSchema = new mongoose.Schema({
 export interface UserType extends mongoose.Document {
   firstName: string;
   lastName: string;
+  avatar: string;
   email: string;
   isBanned: boolean;
   isAdmin: boolean;
