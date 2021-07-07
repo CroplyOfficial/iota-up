@@ -58,7 +58,6 @@ const getFacebookUserData = async (accesstoken: string): Promise<string> => {
       access_token: accesstoken,
     },
   });
-  console.log(data); // { id, email, first_name, last_name }
   return data;
 };
 
