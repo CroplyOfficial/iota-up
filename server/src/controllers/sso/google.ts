@@ -33,38 +33,50 @@ function getGoogleAuthURL() {
 /**
  * Get the Bearer token and get the user profile data
  * and email from the google API
+ *
+ * @param {String} code access code returned by google
+ * @param {String} clientId client ID of google
+ * @param {String} clientSecret client secret of google
+ * @param {String} redirectURI URI to redirect the user to
+ * @return {
+ *    {String} access_token
+ *    {Number} expires_in
+ *    {String} refresh_token
+ *    {String} scope
+ *    {String} id_token
+ * }
  */
 
 const getTokens = async ({
-    code,
-    clientId,
-    clientSecret,
-    redirectUri,
-  }: {
-    code: string;
-    clientId: string;
-    clientSecret: string;
-    redirectUri: string;
-  }): Promise<{
-    access_token: string;
-    expires_in: Number;
-    refresh_token: string;
-    scope: string;
-    id_token: string;
-  }> => {
-    const url = "https://oauth2.googleapis.com/token";
+  code,
+  clientId,
+  clientSecret,
+  redirectUri,
+}: {
+  code: string;
+  clientId: string;
+  clientSecret: string;
+  redirectUri: string;
+}): Promise<{
+  access_token: string;
+  expires_in: Number;
+  refresh_token: string;
+  scope: string;
+  id_token: string;
+}> => {
+  const url = 'https://oauth2.googleapis.com/token';
   const values = {
     code,
     client_id: clientId,
     client_secret: clientSecret,
     redirect_uri: redirectUri,
-    grant_type: "authorization_code",
+    grant_type: 'authorization_code',
   };
 
   return axios
     .post(url, querystring.stringify(values), {
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
     })
     .then((res) => res.data)
@@ -72,9 +84,6 @@ const getTokens = async ({
       console.error(`Failed to fetch auth tokens`);
       throw new Error(error.message);
     });
-}
+};
 
-export {
-  getGoogleAuthURL,
-  getTokens
-}
+export { getGoogleAuthURL, getTokens };

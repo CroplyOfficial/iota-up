@@ -1,17 +1,15 @@
 import mongoose from 'mongoose';
 
-/*
+/**
  * Connect to the database using the connection string
  * passed to the function
  *
- * @param   connString: mongoDB connection string
- * @returns none
- * @output  if all goes good then DB connection would succeed
+ * @param   {String} connString mongoDB connection string
+ * @return  void
  */
 
 const connectToDB = async (connString: string): Promise<void> => {
   try {
-    // await the connection from the URI
     const conn = await mongoose.connect(connString, {
       useUnifiedTopology: true,
       useNewUrlParser: true,

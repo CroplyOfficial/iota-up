@@ -1,9 +1,11 @@
 import { Request, Response } from 'express';
 import axios from 'axios';
+import { getGoogleAuthURL, getTokens } from './sso/google';
 import {
-  getGoogleAuthURL,
-  getTokens
-} from './sso/google';
+  createFaceBookURL,
+  getAccessTokenFromCode,
+  getFacebookUserData,
+} from './sso/facebook';
 import asyncHandler from 'express-async-handler';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User';
@@ -39,7 +41,10 @@ const loginGoogleUser = asyncHandler(async (req: Request, res: Response) => {
     });
 
     // Fetch the user's profile with the access token and bearer
-    const googleUser = await axios.get(`https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${access_token}`, {
+    const googleUser = await axios
+      .get(
+        `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${access_token}`,
+        {
           headers: {
             Authorization: `Bearer ${id_token}`,
           },
@@ -53,12 +58,17 @@ const loginGoogleUser = asyncHandler(async (req: Request, res: Response) => {
     const user_exists = await User.findOne({ email: googleUser.email });
 
     if (user_exists) {
-      user_exists.connections.includes('google') ? null : user_exists.connections.push('google');
+      user_exists.connections.includes('google')
+        ? null
+        : user_exists.connections.push('google');
       await user_exists.save();
-      const token = jwt.sign({ id: user_exists._id }, process.env.JWT_SECRET || 'fallbacksecret');
+      const token = jwt.sign(
+        { id: user_exists._id },
+        process.env.JWT_SECRET || 'fallbacksecret'
+      );
       res.json({
         token,
-        ...user_exists._doc
+        ...user_exists._doc,
       });
     } else {
       const user = await User.create({
@@ -66,22 +76,83 @@ const loginGoogleUser = asyncHandler(async (req: Request, res: Response) => {
         lastName: googleUser.family_name,
         avatar: googleUser.picture,
         email: googleUser.email,
-        connections: [ 'google' ]
+        connections: ['google'],
       });
 
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'fallbacksecret');
+      const token = jwt.sign(
+        { id: user._id },
+        process.env.JWT_SECRET || 'fallbacksecret'
+      );
 
       res.json({
         token,
-        ...user._doc
+        ...user._doc,
       });
     }
   } catch (error) {
-   throw (error);
+    throw error;
   }
 });
 
-export {
-  authGoogle,
-  loginGoogleUser
-};
+/**
+ * Redirect the logged in user to the facebook
+ * authorizatin URL
+ *
+ * @route     /api/users/authfacebook
+ * @redirect  /api/users/successfacebook
+ */
+
+const authFacebook = asyncHandler(async (req: Request, res: Response) => {
+  res.redirect(createFaceBookURL());
+});
+
+/**
+ * Use the code to get the access code and then the
+ * data for the user
+ *
+ * @route     /api/users/successfacebook
+ * @returns   User
+ */
+
+const loginFacebookUser = asyncHandler(async (req: Request, res: Response) => {
+  const code: any = await req.query.code;
+  const accessToken = await getAccessTokenFromCode(code);
+  const userData: any = await getFacebookUserData(accessToken);
+
+  const user_exists = await User.findOne({ email: userData.email });
+
+  if (user_exists) {
+    user_exists.connections.includes('facebook')
+      ? null
+      : user_exists.connections.push('facebook');
+    await user_exists.save();
+    const token = jwt.sign(
+      { id: user_exists._id },
+      process.env.JWT_SECRET || 'fallbacksecret'
+    );
+    res.json({
+      token,
+      ...user_exists._doc,
+    });
+  } else {
+    const user = await User.create({
+      firstName: userData.first_name,
+      lastName: userData.last_name,
+      avatar: userData.picture.data.url,
+      email: userData.email,
+      connections: ['facebook'],
+    });
+
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET || 'fallbacksecret'
+    );
+
+    res.json({
+      token,
+      ...user._doc,
+    });
+  }
+});
+
+export { authGoogle, loginGoogleUser, authFacebook, loginFacebookUser };
