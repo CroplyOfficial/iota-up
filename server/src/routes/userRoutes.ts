@@ -1,6 +1,7 @@
 import express from 'express';
 const router = express.Router();
 
+import { ensureAuthorized, ensureIsAdmin } from '../middleware/auth';
 import {
   authGoogle,
   loginGoogleUser,
@@ -8,6 +9,8 @@ import {
   loginFacebookUser,
   authLinkedin,
   loginLinkedin,
+  updateUser,
+  getUserInfo,
 } from '../controllers/userControllers';
 
 router.route('/authgoogle').get(authGoogle);
@@ -16,5 +19,9 @@ router.route('/authfacebook').get(authFacebook);
 router.route('/successfacebook').get(loginFacebookUser);
 router.route('/authlinkedin').get(authLinkedin);
 router.route('/successlinkedin').get(loginLinkedin);
+router
+  .route('/me')
+  .put(ensureAuthorized, updateUser)
+  .get(ensureAuthorized, getUserInfo);
 
 export default router;
