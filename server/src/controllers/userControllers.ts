@@ -31,7 +31,7 @@ const authGoogle = asyncHandler(async (req: Request, res: Response) => {
  * Get the user data from the token retrieved via the
  * authorization route for google sign in
  *
- * @route    POST /api/users/authgoogle
+ * @route    GET /api/users/authgoogle
  * @returns  user data JSON
  */
 
@@ -103,7 +103,7 @@ const loginGoogleUser = asyncHandler(async (req: Request, res: Response) => {
  * Redirect the logged in user to the facebook
  * authorizatin URL
  *
- * @route     /api/users/authfacebook
+ * @route     GET /api/users/authfacebook
  * @redirect  /api/users/successfacebook
  */
 
@@ -115,7 +115,7 @@ const authFacebook = asyncHandler(async (req: Request, res: Response) => {
  * Use the code to get the access code and then the
  * data for the user
  *
- * @route     /api/users/successfacebook
+ * @route     GET /api/users/successfacebook
  * @returns   User
  */
 
@@ -176,7 +176,7 @@ const authLinkedin = asyncHandler(async (req: Request, res: Response) => {
  * the user exists add linkedin to one of
  * the connections else create new user
  *
- * @route     /api/users/successlinkedin
+ * @route     GET /api/users/successlinkedin
  * @returns   {Object} userData
  */
 
@@ -221,6 +221,53 @@ const loginLinkedin = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * Update the user profile with skills, wallet, city, country
+ *
+ * @route   PUT /api/users/me
+ * @returns User JSON
+ * @access  restricted, logged in only
+ */
+
+const updateUser = asyncHandler(async (req: Request, res: Response) => {
+  interface IReqBody {
+    wallet: string | undefined;
+    city: string | undefined;
+    country: string | undefined;
+    skills: Array<string> | undefined;
+  }
+
+  const { wallet, city, country, skills }: IReqBody = req.body;
+  req.user.wallet = wallet || req.user.wallet;
+  req.user.city = city || req.user.city;
+  req.user.country = country || req.user.country;
+  req.user.skills = skills || req.user.skills;
+
+  const user = await req.user.save();
+
+  const token = jwt.sign(
+    { id: user._id },
+    process.env.JWT_SECRET || 'fallbacksecret'
+  );
+
+  res.json({
+    token,
+    ...user._doc,
+  });
+});
+
+/**
+ * get info about the logged in user
+ *
+ * @route    GET /api/users/me
+ * @returnns User JSON
+ * @access   restricted, logged in only
+ */
+
+const getUserInfo = asyncHandler(async (req: Request, res: Response) => {
+  res.json(req.user);
+});
+
 export {
   authGoogle,
   loginGoogleUser,
@@ -228,4 +275,6 @@ export {
   loginFacebookUser,
   authLinkedin,
   loginLinkedin,
+  updateUser,
+  getUserInfo,
 };

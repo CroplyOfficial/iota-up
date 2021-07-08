@@ -4,20 +4,20 @@ import mongoose from 'mongoose';
 const UserSchema = new mongoose.Schema({
   firstName: {
     type: String,
-    required: true
+    required: true,
   },
   lastName: {
     type: String,
-    required: true
+    required: true,
   },
   avatar: {
     type: String,
-    default: '/images/defaultavatar.png'
+    default: '/images/defaultavatar.png',
   },
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
   isBanned: {
     type: Boolean,
@@ -27,20 +27,25 @@ const UserSchema = new mongoose.Schema({
   isAdmin: {
     type: Boolean,
     required: true,
-    default: false
+    default: false,
+  },
+  skills: {
+    type: Array,
+    required: true,
+    default: [],
   },
   wallet: {
-    type: String
+    type: String,
   },
   city: {
-    type: String
+    type: String,
   },
   country: {
-    type: String
+    type: String,
   },
   connections: {
-    type: Array
-  }
+    type: Array,
+  },
 });
 
 // User Interface
@@ -55,7 +60,7 @@ export interface UserType extends mongoose.Document {
   city: string;
   country: string;
   connections: Array<string>;
-};
+}
 
 const User = mongoose.model('User', UserSchema);
 export { User };
