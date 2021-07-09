@@ -1,7 +1,21 @@
 import { IProjectModel, Project } from '../models/Project';
 import asyncHandler from 'express-async-handler';
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { User } from '../models/User';
+import { getArrayMatches } from '../utils/arrayUtils';
+
+interface IMatchedProject {
+  matches?: number;
+  name: string;
+  desc: string;
+  projectAuthor: mongoose.Schema.Types.ObjectId;
+  tags: Array<string>;
+  upvotes: number;
+  backers: number;
+  media: Array<string>;
+  created: Date;
+}
 
 /**
  * create a new project route
@@ -120,8 +134,8 @@ const trendingProjects = asyncHandler(async (req: Request, res: Response) => {
  * but rather the tags that the user actually backs
  *
  * @route   GET /api/projects/:id/add-backed
- * @access  restricted, bearer token authentication
- * @returns Array of recommended projects for the user
+ * @access  restricted, bearer token authorization
+ * @returns Array tags the user has backed
  */
 
 const addBackedProject = asyncHandler(async (req: Request, res: Response) => {
@@ -140,10 +154,52 @@ const addBackedProject = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * Get recommended projects for the user who is logged in, the algorith takes
+ * into account the tags that the user is backing already, hence interested in
+ * and then return those recommended projects.
+ *
+ * @route   GET /api/projects/recommended
+ * @access  restricted, bearer token authorization
+ * @returns Array of projects recommended
+ */
+
+const recommendedProjects = asyncHandler(
+  async (req: Request, res: Response) => {
+    const projects: IProjectModel[] | null = await Project.find({});
+    if (projects) {
+      const matches = projects.map((project: IProjectModel) => {
+        const arrMatches = getArrayMatches(
+          req.user.backedProjects,
+          project.tags
+        );
+        if (arrMatches > 0) {
+          let matchedProject: IMatchedProject = project.toObject();
+          matchedProject.matches = arrMatches;
+          return matchedProject;
+        } else {
+          return;
+        }
+      });
+      matches.sort((a: any, b: any) => {
+        return b.matches - a.matches;
+      });
+      const filtered: any[] = matches.filter(
+        (match: any) => match && match !== undefined
+      );
+      res.json(filtered);
+    } else {
+      res.status(404);
+      throw new Error('No projects found');
+    }
+  }
+);
+
 export {
   createProject,
   indexProjects,
   toggleProjectLike,
   trendingProjects,
   addBackedProject,
+  recommendedProjects,
 };
