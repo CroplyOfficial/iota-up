@@ -6,6 +6,7 @@ import { connectToDB } from './config/mongo';
 import { errorHandler } from './middleware/errors';
 
 import userRoutes from './routes/userRoutes';
+import projectRoutes from './routes/projectRoutes';
 
 dotenv.config();
 
@@ -14,7 +15,8 @@ const app = express();
 
 app.use(express.json());
 
-app.use('/api/users', userRoutes)
+app.use('/api/users', userRoutes);
+app.use('/api/projects', projectRoutes);
 
 app.use(errorHandler);
 

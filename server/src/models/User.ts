@@ -46,6 +46,16 @@ const UserSchema = new mongoose.Schema({
   connections: {
     type: Array,
   },
+  upvotedProjects: {
+    type: Array,
+    required: true,
+    default: [],
+  },
+  backedProjects: {
+    type: Array,
+    required: true,
+    default: [],
+  },
 });
 
 // User Interface
@@ -60,6 +70,8 @@ export interface UserType extends mongoose.Document {
   city: string;
   country: string;
   connections: Array<string>;
+  upvotedProjects: Array<mongoose.Schema.Types.ObjectId>;
+  backedProjects: Array<mongoose.Schema.Types.ObjectId>;
 }
 
 const User = mongoose.model('User', UserSchema);
