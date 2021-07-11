@@ -1,9 +1,9 @@
-import { IProjectModel, Project } from '../models/Project';
+import { Project, IProjectModel } from '../models/Project';
 import asyncHandler from 'express-async-handler';
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
-import { User } from '../models/User';
 import { getArrayMatches } from '../utils/arrayUtils';
+import { Post } from '../models/Posts';
 
 interface IMatchedProject {
   matches?: number;
@@ -195,6 +195,28 @@ const recommendedProjects = asyncHandler(
   }
 );
 
+/**
+ * Get a project by ID and get all the posts associated with it
+ *
+ * @route   GET /api/projects/:id
+ * @access  open
+ * @returns Objecct containing the project and all the posts
+ */
+
+const getProjectById = asyncHandler(async (req: Request, res: Response) => {
+  const project: any = await Project.findById(req.params.id);
+  if (project) {
+    const posts = await Post.find({ project: project._id });
+    res.json({
+      ...project._doc,
+      posts,
+    });
+  } else {
+    res.status(404);
+    throw new Error('Project not found');
+  }
+});
+
 export {
   createProject,
   indexProjects,
@@ -202,4 +224,5 @@ export {
   trendingProjects,
   addBackedProject,
   recommendedProjects,
+  getProjectById,
 };
