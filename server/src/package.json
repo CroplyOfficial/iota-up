@@ -16,5 +16,9 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.13.0",
     "querystring": "^0.2.1"
+  },
+  "devDependencies": {
+    "@types/jsdoc-to-markdown": "^7.0.1",
+    "jsdoc-to-markdown": "^7.0.1"
   }
 }
