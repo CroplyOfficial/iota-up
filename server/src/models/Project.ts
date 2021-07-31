@@ -37,6 +37,19 @@ const projectSchema = new mongoose.Schema({
     default: Date.now,
     required: true,
   },
+  video: {
+    type: String,
+    required: false,
+  },
+  category: {
+    type: Array,
+    required: true,
+    default: [],
+  },
+  wallet: {
+    type: String,
+    required: true,
+  },
 });
 
 export interface IProjectModel extends mongoose.Document {
@@ -48,6 +61,9 @@ export interface IProjectModel extends mongoose.Document {
   backers: number;
   media: Array<string>;
   created: Date;
+  video: string;
+  category: string[];
+  wallet: string;
 }
 
 const Project = mongoose.model<IProjectModel>('Project', projectSchema);

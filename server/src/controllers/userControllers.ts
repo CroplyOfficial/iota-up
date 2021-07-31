@@ -234,14 +234,19 @@ const updateUser = asyncHandler(async (req: Request, res: Response) => {
     wallet: string | undefined;
     city: string | undefined;
     country: string | undefined;
+    firstName: string | undefined;
+    lastName: string | undefined;
     skills: Array<string> | undefined;
   }
 
-  const { wallet, city, country, skills }: IReqBody = req.body;
+  const { wallet, city, country, skills, firstName, lastName }: IReqBody =
+    req.body;
   req.user.wallet = wallet || req.user.wallet;
   req.user.city = city || req.user.city;
   req.user.country = country || req.user.country;
   req.user.skills = skills || req.user.skills;
+  req.user.firstName = firstName || req.user.firstName;
+  req.user.lastName = lastName || req.user.lastName;
 
   const user = await req.user.save();
 
