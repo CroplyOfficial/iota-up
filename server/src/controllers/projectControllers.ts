@@ -13,6 +13,8 @@ interface IMatchedProject {
   tags: Array<string>;
   upvotes: number;
   backers: number;
+  video: string;
+  category: string[];
   media: Array<string>;
   created: Date;
 }
@@ -29,20 +31,63 @@ const createProject = asyncHandler(async (req: Request, res: Response) => {
   interface IReqBody {
     name: string;
     desc: string;
-    tags: Array<string>;
+    category: string[];
+    wallet: string;
   }
-  const { name, desc, tags }: IReqBody = req.body;
+  const { name, desc, category, wallet }: IReqBody = req.body;
   const project = await Project.create({
     name,
-    tags,
     desc,
+    category,
+    wallet,
     projectAuthor: req.user._id,
   }).catch((error) => {
     res.status(400);
     throw new Error('unable to create project');
   });
-
   res.json(project);
+});
+
+/**
+ * Edit the project, basically the project at this point is created
+ * and this route will be used to add the miscellaneous information
+ * related to that specific project
+ *
+ * @route   PUT /api/projects/:id
+ * @access  Bearer Token Auth
+ * @returns Project JSON
+ */
+
+const editProject = asyncHandler(async (req: Request, res: Response) => {
+  interface IReqBody {
+    name?: string;
+    desc?: string;
+    tags?: string[];
+    media?: string[];
+    video?: string;
+    category?: string[];
+  }
+  const { name, desc, tags, media, video, category }: IReqBody = req.body;
+  const project: IProjectModel | null = await Project.findById(req.params.id);
+  if (project) {
+    console.log(project.projectAuthor, req.user.id);
+    if (project.projectAuthor.toString() === req.user.id) {
+      project.name = name ?? project.name;
+      project.desc = desc ?? project.desc;
+      project.tags = tags ?? project.tags;
+      project.media = media ?? project.media;
+      project.video = video ?? project.video;
+      project.category = category ?? project.category;
+      const updatedProject = await project.save();
+      res.json(updatedProject);
+    } else {
+      res.status(403);
+      throw new Error('You do not own this project');
+    }
+  } else {
+    res.status(404);
+    throw new Error('Project not found');
+  }
 });
 
 /**
@@ -225,4 +270,5 @@ export {
   addBackedProject,
   recommendedProjects,
   getProjectById,
+  editProject,
 };
