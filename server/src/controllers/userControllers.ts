@@ -273,6 +273,30 @@ const getUserInfo = asyncHandler(async (req: Request, res: Response) => {
   res.json(req.user);
 });
 
+/**
+ * Get information about a user, mainly meant for project Info
+ *
+ * @route /api/users/overview/:id
+ * @access  open
+ * @returns user object
+ */
+
+const getUserOverview = asyncHandler(async (req: Request, res: Response) => {
+  const user = await User.findById(req.params.id);
+  if (user) {
+    res.json({
+      fullName: `${user.firstName} ${user.lastName}`,
+      avatar: user.avatar,
+      projects: user.projects,
+      city: user.city,
+      country: user.country,
+    });
+  } else {
+    res.status(404);
+    throw new Error('user not found');
+  }
+});
+
 export {
   authGoogle,
   loginGoogleUser,
@@ -282,4 +306,5 @@ export {
   loginLinkedin,
   updateUser,
   getUserInfo,
+  getUserOverview,
 };
