@@ -50,6 +50,9 @@ const projectSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  editorState: {
+    type: String,
+  },
 });
 
 export interface IProjectModel extends mongoose.Document {
@@ -64,6 +67,7 @@ export interface IProjectModel extends mongoose.Document {
   video: string;
   category: string[];
   wallet: string;
+  editorState: string;
 }
 
 const Project = mongoose.model<IProjectModel>('Project', projectSchema);

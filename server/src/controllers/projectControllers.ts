@@ -4,6 +4,8 @@ import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { getArrayMatches } from '../utils/arrayUtils';
 import { Post } from '../models/Posts';
+import { User } from '../models/User';
+import { escapeRegex } from '../utils/searchFuzzyMatching';
 
 interface IMatchedProject {
   matches?: number;
@@ -45,6 +47,9 @@ const createProject = asyncHandler(async (req: Request, res: Response) => {
     res.status(400);
     throw new Error('unable to create project');
   });
+  const creator = await User.findById(req.user._id);
+  creator.projects.push(project._id);
+  await creator.save();
   res.json(project);
 });
 
@@ -99,11 +104,18 @@ const editProject = asyncHandler(async (req: Request, res: Response) => {
  */
 
 const indexProjects = asyncHandler(async (req: Request, res: Response) => {
-  const projects = await Project.find({}).catch((error) => {
-    res.status(404);
-    throw new Error('Unable to find any projects');
-  });
-  res.json(projects);
+  const query = req.query.q;
+  if (query) {
+    const regex = new RegExp(escapeRegex(String(query)), 'gi');
+    const matchedProjects = await Project.find({ name: regex });
+    res.json(matchedProjects);
+  } else {
+    const projects = await Project.find({}).catch((error) => {
+      res.status(404);
+      throw new Error('Unable to find any projects');
+    });
+    res.json(projects);
+  }
 });
 
 /**
@@ -252,9 +264,17 @@ const getProjectById = asyncHandler(async (req: Request, res: Response) => {
   const project: any = await Project.findById(req.params.id);
   if (project) {
     const posts = await Post.find({ project: project._id });
+    const projectAuthor = await User.findById(project.projectAuthor);
     res.json({
       ...project._doc,
       posts,
+      author: {
+        fullName: `${projectAuthor.firstName} ${projectAuthor.lastName}`,
+        avatar: projectAuthor.avatar,
+        city: projectAuthor.city,
+        country: projectAuthor.country,
+        projects: projectAuthor.projects,
+      },
     });
   } else {
     res.status(404);

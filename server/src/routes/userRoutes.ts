@@ -11,6 +11,7 @@ import {
   loginLinkedin,
   updateUser,
   getUserInfo,
+  getUserOverview,
 } from '../controllers/userControllers';
 
 router.route('/authgoogle').get(authGoogle);
@@ -23,5 +24,6 @@ router
   .route('/me')
   .put(ensureAuthorized, updateUser)
   .get(ensureAuthorized, getUserInfo);
+router.route('/overview/:id').get(getUserOverview);
 
 export default router;
