@@ -282,6 +282,29 @@ const getProjectById = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * Get all the projects that the user has made by the user
+ * id, and return all the projects as an array.
+ *
+ * @route   /api/projects/by-user/:id
+ * @access  open
+ * @returns {IProject[]}
+ */
+
+const getProjectsByUser = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.params.id;
+  // @ts-ignore
+  const projects: IProjectModel[] | null | undefined = await Project.find({
+    projectAuthor: userId,
+  });
+  if (projects) {
+    res.json(projects);
+  } else {
+    res.status(404);
+    throw new Error('No projects were found');
+  }
+});
+
 export {
   createProject,
   indexProjects,
@@ -291,4 +314,5 @@ export {
   recommendedProjects,
   getProjectById,
   editProject,
+  getProjectsByUser,
 };

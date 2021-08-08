@@ -8,6 +8,7 @@ import {
   trendingProjects,
   getProjectById,
   editProject,
+  getProjectsByUser,
 } from '../controllers/projectControllers';
 import { ensureAuthorized, ensureIsAdmin } from '../middleware/auth';
 
@@ -22,5 +23,6 @@ router.route('/:id/toggle-upvote').get(ensureAuthorized, toggleProjectLike);
 router.route('/:id/add-backed').get(ensureAuthorized, addBackedProject);
 router.route('/trending').get(trendingProjects);
 router.route('/recommended').get(ensureAuthorized, recommendedProjects);
+router.route('/by-user/:id').get(getProjectsByUser);
 
 export default router;
