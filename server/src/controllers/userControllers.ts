@@ -231,22 +231,34 @@ const loginLinkedin = asyncHandler(async (req: Request, res: Response) => {
 
 const updateUser = asyncHandler(async (req: Request, res: Response) => {
   interface IReqBody {
-    wallet: string | undefined;
-    city: string | undefined;
-    country: string | undefined;
-    firstName: string | undefined;
-    lastName: string | undefined;
-    skills: Array<string> | undefined;
+    username?: string;
+    bio?: string;
+    wallet?: string;
+    city?: string;
+    country?: string;
+    firstName?: string;
+    lastName?: string;
+    skills?: Array<string>;
   }
 
-  const { wallet, city, country, skills, firstName, lastName }: IReqBody =
-    req.body;
-  req.user.wallet = wallet || req.user.wallet;
-  req.user.city = city || req.user.city;
-  req.user.country = country || req.user.country;
-  req.user.skills = skills || req.user.skills;
-  req.user.firstName = firstName || req.user.firstName;
-  req.user.lastName = lastName || req.user.lastName;
+  const {
+    username,
+    bio,
+    wallet,
+    city,
+    country,
+    skills,
+    firstName,
+    lastName,
+  }: IReqBody = req.body;
+  req.user.wallet = wallet ?? req.user.wallet;
+  req.user.city = city ?? req.user.city;
+  req.user.country = country ?? req.user.country;
+  req.user.skills = skills ?? req.user.skills;
+  req.user.firstName = firstName ?? req.user.firstName;
+  req.user.lastName = lastName ?? req.user.lastName;
+  req.user.username = username ?? req.user.username;
+  req.user.bio = bio ?? req.user.bio;
 
   const user = await req.user.save();
 
@@ -285,6 +297,8 @@ const getUserOverview = asyncHandler(async (req: Request, res: Response) => {
   const user = await User.findById(req.params.id);
   if (user) {
     res.json({
+      username: user.username,
+      bio: user.bio,
       fullName: `${user.firstName} ${user.lastName}`,
       avatar: user.avatar,
       projects: user.projects,

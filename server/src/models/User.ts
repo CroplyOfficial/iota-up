@@ -2,6 +2,12 @@ import mongoose from 'mongoose';
 
 // User Schema
 const UserSchema = new mongoose.Schema({
+  username: {
+    type: String,
+  },
+  bio: {
+    type: String,
+  },
   firstName: {
     type: String,
     required: true,
@@ -66,6 +72,8 @@ const UserSchema = new mongoose.Schema({
 
 // User Interface
 export interface UserType extends mongoose.Document {
+  username: string;
+  bio: string;
   firstName: string;
   lastName: string;
   avatar: string;
