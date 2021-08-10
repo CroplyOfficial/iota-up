@@ -53,6 +53,10 @@ const projectSchema = new mongoose.Schema({
   editorState: {
     type: String,
   },
+  needContributors: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 export interface IProjectModel extends mongoose.Document {
@@ -68,6 +72,7 @@ export interface IProjectModel extends mongoose.Document {
   category: string[];
   wallet: string;
   editorState: string;
+  needContributors: boolean;
 }
 
 const Project = mongoose.model<IProjectModel>('Project', projectSchema);

@@ -71,8 +71,17 @@ const editProject = asyncHandler(async (req: Request, res: Response) => {
     media?: string[];
     video?: string;
     category?: string[];
+    needContributors: boolean;
   }
-  const { name, desc, tags, media, video, category }: IReqBody = req.body;
+  const {
+    name,
+    desc,
+    tags,
+    media,
+    video,
+    category,
+    needContributors,
+  }: IReqBody = req.body;
   const project: IProjectModel | null = await Project.findById(req.params.id);
   if (project) {
     console.log(project.projectAuthor, req.user.id);
@@ -83,6 +92,7 @@ const editProject = asyncHandler(async (req: Request, res: Response) => {
       project.media = media ?? project.media;
       project.video = video ?? project.video;
       project.category = category ?? project.category;
+      project.needContributors = needContributors ?? project.needContributors;
       const updatedProject = await project.save();
       res.json(updatedProject);
     } else {
