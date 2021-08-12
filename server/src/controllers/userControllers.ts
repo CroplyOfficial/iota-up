@@ -299,7 +299,7 @@ const getUserOverview = asyncHandler(async (req: Request, res: Response) => {
     res.json({
       username: user.username,
       skills: user.skills,
-      displayName: user.userame ?? `${user.firstName} ${user.lastName}`,
+      displayName: user.userame || `${user.firstName} ${user.lastName}`,
       bio: user.bio,
       fullName: `${user.firstName} ${user.lastName}`,
       avatar: user.avatar,
