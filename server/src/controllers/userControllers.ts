@@ -298,7 +298,7 @@ const getUserOverview = asyncHandler(async (req: Request, res: Response) => {
   if (user) {
     res.json({
       username: user.username,
-      displayName: user.userame ?? `${user.firstName} ${user.lastName}`,
+      displayName: user.userame || `${user.firstName} ${user.lastName}`,
       bio: user.bio,
       fullName: `${user.firstName} ${user.lastName}`,
       avatar: user.avatar,
