@@ -35,5 +35,5 @@ jobs:
       run: | 
         npm ci 
         tsc 
-        cd ./dist
-        pm2 restart server
+        chmod +x deploy.sh
+        ./deploy.sh
