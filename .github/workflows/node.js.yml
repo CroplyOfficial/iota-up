@@ -26,7 +26,9 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - working-directory: ./server
-    - run: npm ci
-    - run: tsc
-    - run: pm2 restart all
+    - name: Run the backend
+      working-directory: ./server
+      run: | 
+        npm ci 
+        tsc 
+        pm2 restart all
