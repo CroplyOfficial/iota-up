@@ -21,14 +21,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js ${{ matrix.node-version }}\
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - run: cd server/src
+    - working-directory: ./server
     - run: npm ci
-    - run: cd ..
     - run: tsc
-    - run: mv src/node_modules ./dist/
     - run: pm2 restart all
