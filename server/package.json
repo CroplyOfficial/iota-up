@@ -1,0 +1,26 @@
+{
+  "dependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/dotenv": "^8.2.0",
+    "@types/express": "^4.17.12",
+    "@types/gapi": "^0.0.39",
+    "@types/jsonwebtoken": "^8.5.2",
+    "@types/mongoose": "^5.11.97",
+    "@types/multer": "^1.4.7",
+    "@types/node": "^15.12.5",
+    "axios": "^0.21.1",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "express-async-handler": "^1.1.4",
+    "gcp-metadata": "^4.3.0",
+    "googleapis": "^80.0.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.13.0",
+    "multer": "^1.4.2",
+    "querystring": "^0.2.1"
+  },
+  "devDependencies": {
+    "@types/jsdoc-to-markdown": "^7.0.1",
+    "jsdoc-to-markdown": "^7.0.1"
+  }
+}
