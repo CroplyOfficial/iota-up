@@ -36,5 +36,4 @@ jobs:
         npm ci 
         tsc 
         cd ./dist
-        pm2 stop server | grep 'test'
         pm2 start server.js
