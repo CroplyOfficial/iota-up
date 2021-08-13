@@ -16,6 +16,7 @@ jobs:
   build:
 
     runs-on: self-hosted
+    continue-on-error: true
 
     strategy:
       matrix:
