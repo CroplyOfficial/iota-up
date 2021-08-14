@@ -296,10 +296,11 @@ const getUserInfo = asyncHandler(async (req: Request, res: Response) => {
 const getUserOverview = asyncHandler(async (req: Request, res: Response) => {
   const user = await User.findById(req.params.id);
   if (user) {
+    const displayName = user.username ?? `${user.firstName} ${user.lastName}`;
     res.json({
       username: user.username,
       skills: user.skills,
-      displayName: user.userame || `${user.firstName} ${user.lastName}`,
+      displayName: displayName,
       bio: user.bio,
       fullName: `${user.firstName} ${user.lastName}`,
       avatar: user.avatar,

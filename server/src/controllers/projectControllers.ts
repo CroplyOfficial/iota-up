@@ -275,10 +275,13 @@ const getProjectById = asyncHandler(async (req: Request, res: Response) => {
   if (project) {
     const posts = await Post.find({ project: project._id });
     const projectAuthor = await User.findById(project.projectAuthor);
+    const displayName = projectAuthor.username || `${projectAuthor.firstName} ${projectAuthor.lastName}`
     res.json({
       ...project._doc,
       posts,
       author: {
+        username: projectAuthor.username,
+        displayName: displayName,
         fullName: `${projectAuthor.firstName} ${projectAuthor.lastName}`,
         avatar: projectAuthor.avatar,
         city: projectAuthor.city,
@@ -325,4 +328,4 @@ export {
   getProjectById,
   editProject,
   getProjectsByUser,
-};
+}
