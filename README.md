@@ -1,5 +1,7 @@
 # iota-up
 
+![example workflow](https://github.com/CroplyOfficial/iota-up/actions/workflows/node.js.yml/badge.svg)
+
 UP is a community driven project promotion application that allows creators to share and update their community on the work they are doing, to generate interest and donations to help support their work.
 
 An interactive application, UP allows project organisers the ability to clearly share everything about their work, as well as provide updates, and connect through the integrated networking tools available. 
