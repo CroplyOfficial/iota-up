@@ -282,7 +282,11 @@ const updateUser = asyncHandler(async (req: Request, res: Response) => {
  */
 
 const getUserInfo = asyncHandler(async (req: Request, res: Response) => {
-  res.json(req.user);
+  const token = jwt.sign(
+    { id: req.user._id },
+    process.env.JWT_SECRET || "fallbacksecret"
+  );
+  res.json({ token, ...req.user._doc });
 });
 
 /**
