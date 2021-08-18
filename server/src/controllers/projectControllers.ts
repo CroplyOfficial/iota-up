@@ -39,7 +39,7 @@ const createProject = asyncHandler(async (req: Request, res: Response) => {
     wallet: string;
   }
   const { name, desc, category, wallet }: IReqBody = req.body;
-  const random = Math.floor(Math.random() * 5);
+  const random = Math.random() * (5 - 1) + 1;
   const project = await Project.create({
     name,
     desc,
