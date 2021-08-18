@@ -39,11 +39,13 @@ const createProject = asyncHandler(async (req: Request, res: Response) => {
     wallet: string;
   }
   const { name, desc, category, wallet }: IReqBody = req.body;
+  const random = Math.floor(Math.random() * 5);
   const project = await Project.create({
     name,
     desc,
     category,
     wallet,
+    media: [`/images/hodlers/placeholder_${random}.jpg`],
     projectAuthor: req.user._id,
   }).catch((error) => {
     res.status(400);
