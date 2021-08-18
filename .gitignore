@@ -1,4 +1,5 @@
 .env
 node_modules
 server/src/uploads/*
+uploads/*
 !uploads/hodler.txt

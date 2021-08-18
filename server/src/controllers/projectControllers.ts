@@ -6,6 +6,8 @@ import { getArrayMatches } from "../utils/arrayUtils";
 import { Post } from "../models/Posts";
 import { User } from "../models/User";
 import { escapeRegex } from "../utils/searchFuzzyMatching";
+import fs from "fs";
+import path from path;
 
 interface IMatchedProject {
   matches?: number;
@@ -314,12 +316,38 @@ const getProjectsByUser = asyncHandler(async (req: Request, res: Response) => {
   // @ts-ignore
   const projects: IProjectModel[] | null | undefined = await Project.find({
     projectAuthor: userId,
-  });
-  if (projects) {
     res.json(projects);
   } else {
     res.status(404);
     throw new Error("No projects were found");
+  }
+});
+
+/**
+ * Delete the project by id and also remove all the media associated
+ * with that specific project.
+ *
+ * @route DELETE /api/projects/:id
+ * @access Bearer token authorization
+ * @returns {IProject}
+ */
+
+const deleteProject = asyncHandler(async (req: Request, res: Response) => {
+  const project = await Project.findById(req.params.id);
+  if (project) {
+    if (String(project.projectAuthor) !== String(req.user._id)) {
+      res.status(403);
+      throw new Error('you can only delete your own projects')
+    }
+    const root = path.resolve("./");
+    project.media.forEach(async (image) => {
+      fs.unlinkSync(`${root}/uploads/${image}`);
+    });
+    const deleted = Project.findByIdAndDelete(req.params.id)
+    res.json(deleted);
+  } else {
+    res.status(404);
+    throw new Error("project not found");
   }
 });
 
@@ -333,4 +361,5 @@ export {
   getProjectById,
   editProject,
   getProjectsByUser,
+  deleteProject
 };
