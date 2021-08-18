@@ -6,6 +6,8 @@ import { getArrayMatches } from "../utils/arrayUtils";
 import { Post } from "../models/Posts";
 import { User } from "../models/User";
 import { escapeRegex } from "../utils/searchFuzzyMatching";
+import fs from "fs";
+import path from "path";
 
 interface IMatchedProject {
   matches?: number;
@@ -37,11 +39,13 @@ const createProject = asyncHandler(async (req: Request, res: Response) => {
     wallet: string;
   }
   const { name, desc, category, wallet }: IReqBody = req.body;
+  const random = Math.floor(Math.random() * 5);
   const project = await Project.create({
     name,
     desc,
     category,
     wallet,
+    media: [`/images/hodlers/placeholder_${random}.jpg`],
     projectAuthor: req.user._id,
   }).catch((error) => {
     res.status(400);
@@ -323,6 +327,41 @@ const getProjectsByUser = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * Delete the project by id and also remove all the media associated
+ * with that specific project.
+ *
+ * @route DELETE /api/projects/:id
+ * @access Bearer token authorization
+ * @returns {IProject}
+ */
+
+const deleteProject = asyncHandler(async (req: Request, res: Response) => {
+  const project = await Project.findById(req.params.id);
+  if (project) {
+    if (String(project.projectAuthor) !== String(req.user._id)) {
+      res.status(403);
+      throw new Error("you can only delete your own projects");
+    }
+    const root = path.resolve("./");
+    project.media.forEach(async (image) => {
+      try {
+        fs.unlinkSync(`${root}${image}`);
+      } catch {}
+    });
+    const filtered = req.user.projects.filter(
+      (project: string) => String(project) !== req.params.id
+    );
+    req.user.projects = filtered;
+    await req.user.save();
+    const deleted = await Project.findByIdAndDelete(req.params.id);
+    res.json(deleted);
+  } else {
+    res.status(404);
+    throw new Error("project not found");
+  }
+});
+
 export {
   createProject,
   indexProjects,
@@ -333,4 +372,5 @@ export {
   getProjectById,
   editProject,
   getProjectsByUser,
+  deleteProject,
 };
