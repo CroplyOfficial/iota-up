@@ -7,7 +7,7 @@ import { Post } from "../models/Posts";
 import { User } from "../models/User";
 import { escapeRegex } from "../utils/searchFuzzyMatching";
 import fs from "fs";
-import path from path;
+import path from "path";
 
 interface IMatchedProject {
   matches?: number;
@@ -316,6 +316,8 @@ const getProjectsByUser = asyncHandler(async (req: Request, res: Response) => {
   // @ts-ignore
   const projects: IProjectModel[] | null | undefined = await Project.find({
     projectAuthor: userId,
+  });
+  if (projects) {
     res.json(projects);
   } else {
     res.status(404);
@@ -337,13 +339,20 @@ const deleteProject = asyncHandler(async (req: Request, res: Response) => {
   if (project) {
     if (String(project.projectAuthor) !== String(req.user._id)) {
       res.status(403);
-      throw new Error('you can only delete your own projects')
+      throw new Error("you can only delete your own projects");
     }
     const root = path.resolve("./");
     project.media.forEach(async (image) => {
-      fs.unlinkSync(`${root}/uploads/${image}`);
+      try {
+        fs.unlinkSync(`${root}${image}`);
+      } catch {}
     });
-    const deleted = Project.findByIdAndDelete(req.params.id)
+    const filtered = req.user.projects.filter(
+      (project: string) => String(project) !== req.params.id
+    );
+    req.user.projects = filtered;
+    await req.user.save();
+    const deleted = await Project.findByIdAndDelete(req.params.id);
     res.json(deleted);
   } else {
     res.status(404);
@@ -361,5 +370,5 @@ export {
   getProjectById,
   editProject,
   getProjectsByUser,
-  deleteProject
+  deleteProject,
 };
