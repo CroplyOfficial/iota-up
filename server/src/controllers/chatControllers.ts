@@ -2,6 +2,12 @@ import asyncHandler from "express-async-handler";
 import { Chat } from "../models/Chat";
 import { Message } from "../models/Message";
 import { Request, Response } from "express";
+import { CryptoUtil } from "../utils/crypto";
+import dotenv from "dotenv";
+import path from "path";
+
+// @ts-ignore
+const crypto = new CryptoUtil(process.env.SESSION_SECRET);
 
 /**
  * Create a new chat with a user if it doesn't exist
@@ -39,7 +45,11 @@ const newMessage = asyncHandler(async (req: Request, res: Response) => {
   if (chatId && content) {
     const chat = await Chat.findById(chatId);
     if (chat?.members?.includes(req.user._id) && !chat.isBlocked) {
-      const message = await Message.create({ sender: req.user._id, content });
+      const encrypted = crypto.encrypt(content);
+      const message = await Message.create({
+        sender: req.user._id,
+        content: encrypted,
+      });
       chat.messages = [...chat.messages, message._id];
       await chat.save();
       res.json(message);
@@ -70,7 +80,19 @@ const getChatById = asyncHandler(async (req: Request, res: Response) => {
       if (err) throw err;
       if (chat?.members?.includes(req.user._id)) {
         chat.messages = chat.messages.slice(-30);
-        res.json(chat);
+        // ts doesn't understand populate would populat the
+        // messages array to become IMessage[] hence the ignore
+        // @ts-ignore
+        const msgs = crypto.decryptMessageArray(chat.messages);
+        chat.messages = msgs;
+
+        res.json({
+          members: chat.members,
+          messages: msgs,
+          isBlocked: chat.isBlocked,
+          _id: chat._id,
+          blockedBy: chat.blockedBy,
+        });
       } else {
         res.status(403);
         throw new Error("you can only get your own chats");

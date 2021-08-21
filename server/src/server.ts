@@ -5,13 +5,13 @@ import path from "path";
 import { connectToDB } from "./config/mongo";
 import { errorHandler } from "./middleware/errors";
 
+dotenv.config();
+
 import userRoutes from "./routes/userRoutes";
 import projectRoutes from "./routes/projectRoutes";
 import postRoutes from "./routes/postRoutes";
 import uploadRoutes from "./routes/projectUploads";
 import chatRoutes from "./routes/chatRoutes";
-
-dotenv.config();
 
 connectToDB(process.env.MONGO_URI || "");
 const app = express();

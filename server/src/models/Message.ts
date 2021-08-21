@@ -6,14 +6,17 @@ const messageSchema = new mongoose.Schema({
     required: true,
   },
   content: {
-    type: String,
-    required: true,
+    iv: { type: String },
+    content: { type: String },
   },
 });
 
 export interface IMessageSchema {
   sender: mongoose.Schema.Types.ObjectId;
-  content: string;
+  content: {
+    iv: string;
+    content: string;
+  };
 }
 
 const Message = mongoose.model<IMessageSchema>("Message", messageSchema);
