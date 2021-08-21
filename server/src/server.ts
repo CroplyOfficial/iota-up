@@ -3,13 +3,13 @@ import dotenv from "dotenv";
 import path from "path";
 
 import { connectToDB } from "./config/mongo";
-
 import { errorHandler } from "./middleware/errors";
 
 import userRoutes from "./routes/userRoutes";
 import projectRoutes from "./routes/projectRoutes";
 import postRoutes from "./routes/postRoutes";
 import uploadRoutes from "./routes/projectUploads";
+import chatRoutes from "./routes/chatRoutes";
 
 dotenv.config();
 
@@ -22,6 +22,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/uploads", uploadRoutes);
+app.use("/api/chats", chatRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 
 app.use(errorHandler);
