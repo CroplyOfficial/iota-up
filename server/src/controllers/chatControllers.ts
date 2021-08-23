@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import { Chat } from "../models/Chat";
 import { Message } from "../models/Message";
+import { User } from "../models/User";
 import { Request, Response } from "express";
 import { CryptoUtil } from "../utils/crypto";
 import dotenv from "dotenv";
@@ -29,6 +30,11 @@ const tryNewChat = asyncHandler(async (req: Request, res: Response) => {
     const newChat = await Chat.create({
       members: [req.user._id, partner],
     });
+    req.user.chats = [...req.user.chats, newChat._id];
+    await req.user.save();
+    const partnerUser = await User.findById(partner);
+    partnerUser.chats = [...partnerUser.chats, newChat._id];
+    await partnerUser.save();
     res.json(newChat);
   }
 });
@@ -133,4 +139,21 @@ const toggleBlockChat = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
-export { tryNewChat, newMessage, getChatById, toggleBlockChat };
+/**
+ * Get all the chats that the current user is a part of
+ *
+ * @route /api/chats/@me
+ * @access Bearer Token
+ * @returns {Chat[]}
+ */
+
+const getMyChats = asyncHandler(async (req: Request, res: Response) => {
+  User.findById(req.user._id)
+    .populate("chats")
+    .select("chats")
+    .exec((err: any, chats: any) => {
+      res.json(chats);
+    });
+});
+
+export { tryNewChat, newMessage, getChatById, toggleBlockChat, getMyChats };
