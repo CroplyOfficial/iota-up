@@ -149,7 +149,24 @@ const toggleBlockChat = asyncHandler(async (req: Request, res: Response) => {
 
 const getMyChats = asyncHandler(async (req: Request, res: Response) => {
   User.findById(req.user._id)
-    .populate("chats")
+    .populate({
+      path: "chats",
+      populate: {
+        path: "members",
+        model: "User",
+        select: {
+          bio: 0,
+          lastName: 0,
+          email: 0,
+          isBanned: 0,
+          isAdmin: 0,
+          wallet: 0,
+          upvotedProjects: 0,
+          backedProjects: 0,
+          chats: 0,
+        },
+      },
+    })
     .select("chats")
     .exec((err: any, chats: any) => {
       res.json(chats);
