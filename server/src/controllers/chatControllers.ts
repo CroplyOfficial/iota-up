@@ -186,13 +186,28 @@ const chatByPartnerId = asyncHandler(async (req: Request, res: Response) => {
   Chat.findOne({ members: { $in: [req.user._id, partner] } })
     .populate("messages")
     .populate("members")
-    .exec((err, chat) => {
-      if (!chat) {
+    .exec((err, chatDocument) => {
+      if (!chatDocument) {
         res.status(404);
         throw new Error("Unable to find chat");
       }
+      const chat = chatDocument.toObject();
+      chat.messages = chat.messages.slice(-30);
+      // ts doesn't understand populate would populat the
+      // messages array to become IMessage[] hence the ignore
+      // @ts-ignore
+      const msgs = crypto.decryptMessageArray(chat.messages);
+      chat.messages = msgs;
+
       res.json(chat);
     });
 });
 
-export { tryNewChat, newMessage, getChatById, toggleBlockChat, getMyChats };
+export {
+  tryNewChat,
+  newMessage,
+  getChatById,
+  toggleBlockChat,
+  getMyChats,
+  chatByPartnerId,
+};
