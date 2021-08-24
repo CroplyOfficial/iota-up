@@ -173,4 +173,26 @@ const getMyChats = asyncHandler(async (req: Request, res: Response) => {
     });
 });
 
+/**
+ * Get chats by partner ID
+ *
+ * @route GET /api/chats/by-partner/:id
+ * @access restricted bearer token
+ * @returns {IChat}
+ */
+
+const chatByPartnerId = asyncHandler(async (req: Request, res: Response) => {
+  const partner = req.params.id;
+  Chat.findOne({ members: { $in: [req.user._id, partner] } })
+    .populate("messages")
+    .populate("members")
+    .exec((err, chat) => {
+      if (!chat) {
+        res.status(404);
+        throw new Error("Unable to find chat");
+      }
+      res.json(chat);
+    });
+});
+
 export { tryNewChat, newMessage, getChatById, toggleBlockChat, getMyChats };
