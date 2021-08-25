@@ -82,6 +82,7 @@ const getChatById = asyncHandler(async (req: Request, res: Response) => {
   const num = req.query.n || 30;
   const chat = Chat.findById(req.params.id)
     .populate("messages")
+    .populate("members")
     .exec((err, chat) => {
       if (err) throw err;
       if (chat?.members?.includes(req.user._id)) {
