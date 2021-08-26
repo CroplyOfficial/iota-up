@@ -82,24 +82,25 @@ const getChatById = asyncHandler(async (req: Request, res: Response) => {
   const num = req.query.n || 30;
   const chat = Chat.findById(req.params.id)
     .populate("messages")
-    .populate("members")
-    .exec((err, chat) => {
+    .exec(async (err, chatDoc) => {
       if (err) throw err;
-      if (chat?.members?.includes(req.user._id)) {
-        chat.messages = chat.messages.slice(-30);
+      if (chatDoc?.members?.includes(req.user._id)) {
+        const chat: any = chatDoc.toObject();
+        chat.messages = chat.messages.reverse();
+        chat.messages = chat.messages.slice(-num);
         // ts doesn't understand populate would populat the
         // messages array to become IMessage[] hence the ignore
         // @ts-ignore
         const msgs = crypto.decryptMessageArray(chat.messages);
         chat.messages = msgs;
 
-        res.json({
-          members: chat.members,
-          messages: msgs,
-          isBlocked: chat.isBlocked,
-          _id: chat._id,
-          blockedBy: chat.blockedBy,
-        });
+        const partnerId = chat.members?.filter(
+          (member: string) => String(member) !== String(req.user._id)
+        );
+        const partner = await User.findById(partnerId);
+        chat.partner = partner;
+
+        res.json(chat);
       } else {
         res.status(403);
         throw new Error("you can only get your own chats");
@@ -193,7 +194,8 @@ const chatByPartnerId = asyncHandler(async (req: Request, res: Response) => {
         throw new Error("Unable to find chat");
       }
       const chat = chatDocument.toObject();
-      chat.messages = chat.messages.slice(-30);
+      const reversed = chat.messages.reverse();
+      chat.messages = reversed.slice(30);
       // ts doesn't understand populate would populat the
       // messages array to become IMessage[] hence the ignore
       // @ts-ignore
