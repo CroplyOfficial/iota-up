@@ -8,6 +8,7 @@
     "@types/mongoose": "^5.11.97",
     "@types/multer": "^1.4.7",
     "@types/node": "^15.12.5",
+    "@types/socket.io": "^3.0.2",
     "axios": "^0.21.1",
     "crypto": "^1.0.1",
     "dotenv": "^10.0.0",
@@ -18,7 +19,8 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.13.0",
     "multer": "^1.4.2",
-    "querystring": "^0.2.1"
+    "querystring": "^0.2.1",
+    "socket.io": "^4.2.0"
   },
   "devDependencies": {
     "@types/jsdoc-to-markdown": "^7.0.1",

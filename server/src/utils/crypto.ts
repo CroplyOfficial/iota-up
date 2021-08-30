@@ -10,6 +10,7 @@ interface IMessage {
     iv: string;
     content: string;
   };
+  date?: Date;
   __v: number;
 }
 
@@ -69,6 +70,7 @@ export class CryptoUtil {
       msgs.push({
         _id: message._id,
         sender: message.sender,
+        date: message.date,
         content: decrypted,
       });
     });
