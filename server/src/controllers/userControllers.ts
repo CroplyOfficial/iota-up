@@ -1,19 +1,19 @@
-import { Request, Response } from "express";
-import axios from "axios";
-import { getGoogleAuthURL, getTokens } from "./sso/google";
+import { Request, Response } from 'express';
+import axios from 'axios';
+import { getGoogleAuthURL, getTokens } from './sso/google';
 import {
   createFaceBookURL,
   getAccessTokenFromCode,
   getFacebookUserData,
-} from "./sso/facebook";
+} from './sso/facebook';
 import {
   getLinkedinURI,
   getLinkedinAccessToken,
   getLinkedinUser,
-} from "./sso/linkedin";
-import asyncHandler from "express-async-handler";
-import jwt from "jsonwebtoken";
-import { User } from "../models/User";
+} from './sso/linkedin';
+import asyncHandler from 'express-async-handler';
+import jwt from 'jsonwebtoken';
+import { User } from '../models/User';
 
 /**
  * Get the google authorization token and redirect to
@@ -40,9 +40,9 @@ const loginGoogleUser = asyncHandler(async (req: Request, res: Response) => {
     const code = req.query.code as string;
     const { id_token, access_token } = await getTokens({
       code,
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-      redirectUri: process.env.GOOGLE_REDIRECT_URI || "",
+      clientId: process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+      redirectUri: process.env.GOOGLE_REDIRECT_URI || '',
     });
 
     // Fetch the user's profile with the access token and bearer
@@ -57,19 +57,19 @@ const loginGoogleUser = asyncHandler(async (req: Request, res: Response) => {
       )
       .then((res) => res.data)
       .catch(() => {
-        throw new Error("User not found");
+        throw new Error('User not found');
       });
 
     const user_exists = await User.findOne({ email: googleUser.email });
 
     if (user_exists) {
-      user_exists.connections.includes("google")
+      user_exists.connections.includes('google')
         ? null
-        : user_exists.connections.push("google");
+        : user_exists.connections.push('google');
       await user_exists.save();
       const token = jwt.sign(
         { id: user_exists._id },
-        process.env.JWT_SECRET || "fallbacksecret"
+        process.env.JWT_SECRET || 'fallbacksecret'
       );
       res.json({
         token,
@@ -81,12 +81,12 @@ const loginGoogleUser = asyncHandler(async (req: Request, res: Response) => {
         lastName: googleUser.family_name,
         avatar: googleUser.picture,
         email: googleUser.email,
-        connections: ["google"],
+        connections: ['google'],
       });
 
       const token = jwt.sign(
         { id: user._id },
-        process.env.JWT_SECRET || "fallbacksecret"
+        process.env.JWT_SECRET || 'fallbacksecret'
       );
 
       res.json({
@@ -127,13 +127,13 @@ const loginFacebookUser = asyncHandler(async (req: Request, res: Response) => {
   const user_exists = await User.findOne({ email: userData.email });
 
   if (user_exists) {
-    user_exists.connections.includes("facebook")
+    user_exists.connections.includes('facebook')
       ? null
-      : user_exists.connections.push("facebook");
+      : user_exists.connections.push('facebook');
     await user_exists.save();
     const token = jwt.sign(
       { id: user_exists._id },
-      process.env.JWT_SECRET || "fallbacksecret"
+      process.env.JWT_SECRET || 'fallbacksecret'
     );
     res.json({
       token,
@@ -145,12 +145,12 @@ const loginFacebookUser = asyncHandler(async (req: Request, res: Response) => {
       lastName: userData.last_name,
       avatar: userData.picture.data.url,
       email: userData.email,
-      connections: ["facebook"],
+      connections: ['facebook'],
     });
 
     const token = jwt.sign(
       { id: user._id },
-      process.env.JWT_SECRET || "fallbacksecret"
+      process.env.JWT_SECRET || 'fallbacksecret'
     );
 
     res.json({
@@ -188,13 +188,13 @@ const loginLinkedin = asyncHandler(async (req: Request, res: Response) => {
   const user_exists = await User.findOne({ email: userData.email });
 
   if (user_exists) {
-    user_exists.connections.includes("linkedin")
+    user_exists.connections.includes('linkedin')
       ? null
-      : user_exists.connections.push("linkedin");
+      : user_exists.connections.push('linkedin');
     await user_exists.save();
     const token = jwt.sign(
       { id: user_exists._id },
-      process.env.JWT_SECRET || "fallbacksecret"
+      process.env.JWT_SECRET || 'fallbacksecret'
     );
     res.json({
       token,
@@ -206,12 +206,12 @@ const loginLinkedin = asyncHandler(async (req: Request, res: Response) => {
       lastName: userData.localizedLastName,
       email: userData.email,
       avatar: userData.avatar,
-      connections: ["linkedin"],
+      connections: ['linkedin'],
     });
 
     const token = jwt.sign(
       { id: user._id },
-      process.env.JWT_SECRET || "fallbacksecret"
+      process.env.JWT_SECRET || 'fallbacksecret'
     );
 
     res.json({
@@ -239,6 +239,7 @@ const updateUser = asyncHandler(async (req: Request, res: Response) => {
     firstName?: string;
     lastName?: string;
     skills?: Array<string>;
+    avatar?: string;
   }
 
   const {
@@ -250,7 +251,9 @@ const updateUser = asyncHandler(async (req: Request, res: Response) => {
     skills,
     firstName,
     lastName,
+    avatar,
   }: IReqBody = req.body;
+
   req.user.wallet = wallet ?? req.user.wallet;
   req.user.city = city ?? req.user.city;
   req.user.country = country ?? req.user.country;
@@ -259,12 +262,13 @@ const updateUser = asyncHandler(async (req: Request, res: Response) => {
   req.user.lastName = lastName ?? req.user.lastName;
   req.user.username = username ?? req.user.username;
   req.user.bio = bio ?? req.user.bio;
+  req.user.avatar = avatar ?? req.user.avatar;
 
   const user = await req.user.save();
 
   const token = jwt.sign(
     { id: user._id },
-    process.env.JWT_SECRET || "fallbacksecret"
+    process.env.JWT_SECRET || 'fallbacksecret'
   );
 
   res.json({
@@ -284,7 +288,7 @@ const updateUser = asyncHandler(async (req: Request, res: Response) => {
 const getUserInfo = asyncHandler(async (req: Request, res: Response) => {
   const token = jwt.sign(
     { id: req.user._id },
-    process.env.JWT_SECRET || "fallbacksecret"
+    process.env.JWT_SECRET || 'fallbacksecret'
   );
   res.json({ token, ...req.user._doc });
 });
@@ -314,9 +318,29 @@ const getUserOverview = asyncHandler(async (req: Request, res: Response) => {
     });
   } else {
     res.status(404);
-    throw new Error("user not found");
+    throw new Error('user not found');
   }
 });
+
+/**
+ * Get all the favorite projects
+ *
+ * @route GET /api/users/me/favorites
+ * @access restricted bearer token
+ * @returns {IProject[]}
+ */
+
+const getFavoriteProjects = asyncHandler(
+  async (req: Request, res: Response) => {
+    User.findById(req.user._id)
+      .populate('upvotedProjects')
+      .select('upvotedProjects')
+      .exec((error: any, projects: any) => {
+        if (error) throw error;
+        res.json(projects.upvotedProjects);
+      });
+  }
+);
 
 export {
   authGoogle,
@@ -328,4 +352,5 @@ export {
   updateUser,
   getUserInfo,
   getUserOverview,
+  getFavoriteProjects,
 };

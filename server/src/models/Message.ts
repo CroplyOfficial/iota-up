@@ -9,6 +9,10 @@ const messageSchema = new mongoose.Schema({
     iv: { type: String },
     content: { type: String },
   },
+  date: {
+    type: Date,
+    default: Date.now(),
+  },
 });
 
 export interface IMessageSchema {
@@ -17,6 +21,7 @@ export interface IMessageSchema {
     iv: string;
     content: string;
   };
+  date: Date;
 }
 
 const Message = mongoose.model<IMessageSchema>("Message", messageSchema);

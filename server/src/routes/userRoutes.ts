@@ -1,7 +1,7 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response } from 'express';
 const router = express.Router();
 
-import { ensureAuthorized, ensureIsAdmin } from "../middleware/auth";
+import { ensureAuthorized, ensureIsAdmin } from '../middleware/auth';
 import {
   authGoogle,
   loginGoogleUser,
@@ -12,21 +12,23 @@ import {
   updateUser,
   getUserInfo,
   getUserOverview,
-} from "../controllers/userControllers";
+  getFavoriteProjects,
+} from '../controllers/userControllers';
 
-router.route("/authgoogle").get(authGoogle);
-router.route("/successgoogle").get(loginGoogleUser);
-router.route("/authfacebook").get(authFacebook);
-router.route("/successfacebook").get(loginFacebookUser);
-router.route("/authlinkedin").get(authLinkedin);
-router.route("/successlinkedin").get(loginLinkedin);
+router.route('/authgoogle').get(authGoogle);
+router.route('/successgoogle').get(loginGoogleUser);
+router.route('/authfacebook').get(authFacebook);
+router.route('/successfacebook').get(loginFacebookUser);
+router.route('/authlinkedin').get(authLinkedin);
+router.route('/successlinkedin').get(loginLinkedin);
 router
-  .route("/me")
+  .route('/me')
   .put(ensureAuthorized, updateUser)
   .get(ensureAuthorized, getUserInfo);
-router.route("/overview/:id").get(getUserOverview);
-router.get("/test123/", (req: Request, res: Response) => {
-  res.send("ok");
+router.route('/me/favorites').get(ensureAuthorized, getFavoriteProjects);
+router.route('/overview/:id').get(getUserOverview);
+router.get('/test123/', (req: Request, res: Response) => {
+  res.send('ok');
 });
 
 export default router;
