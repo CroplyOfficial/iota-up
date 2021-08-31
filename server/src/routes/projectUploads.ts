@@ -38,6 +38,10 @@ const upload: any = multer({
   limits: { fileSize: 5 * 1024 * 1024, fieldSize: 3 * 1024 * 1024 },
 });
 
+/**
+ * @route POST /api/uploads
+ */
+
 router.post(
   '/',
   ensureAuthorized,

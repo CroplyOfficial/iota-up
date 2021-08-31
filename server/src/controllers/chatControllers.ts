@@ -1,11 +1,23 @@
-import asyncHandler from "express-async-handler";
-import { Chat } from "../models/Chat";
-import { Message } from "../models/Message";
-import { User } from "../models/User";
-import { Request, Response } from "express";
-import { CryptoUtil } from "../utils/crypto";
-import dotenv from "dotenv";
-import path from "path";
+import asyncHandler from 'express-async-handler';
+import { Chat } from '../models/Chat';
+import { Message } from '../models/Message';
+import { User } from '../models/User';
+import { Request, Response } from 'express';
+import { CryptoUtil } from '../utils/crypto';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+
+dotenv.config({ path: '../' });
+const getCurrentUser = async (token: string) => {
+  const JWT_SECRET: any = process.env.JWT_SECRET;
+  const decoded: any = jwt.verify(token, JWT_SECRET);
+  const user = await User.findById(decoded.id);
+  if (!user.isBanned) {
+    return user;
+  } else {
+    return null;
+  }
+};
 
 // @ts-ignore
 const crypto = new CryptoUtil(process.env.SESSION_SECRET);
@@ -19,25 +31,27 @@ const crypto = new CryptoUtil(process.env.SESSION_SECRET);
  * @returns {IChat} chat
  */
 
-const tryNewChat = asyncHandler(async (req: Request, res: Response) => {
-  const { partner } = req.body;
-  const chat = await Chat.findOne({
-    members: { $in: [req.user._id, partner] },
-  });
-  if (chat) {
-    res.json(chat);
-  } else {
-    const newChat = await Chat.create({
-      members: [req.user._id, partner],
+const tryNewChat = async (partner: string, token: string) => {
+  const user = await getCurrentUser(token);
+  if (user) {
+    const chat = await Chat.findOne({
+      members: { $in: [user._id, partner] },
     });
-    req.user.chats = [...req.user.chats, newChat._id];
-    await req.user.save();
-    const partnerUser = await User.findById(partner);
-    partnerUser.chats = [...partnerUser.chats, newChat._id];
-    await partnerUser.save();
-    res.json(newChat);
+    if (chat) {
+      return chat;
+    } else {
+      const newChat = await Chat.create({
+        members: [user._id, partner],
+      });
+      user.chats = [...user.chats, newChat._id];
+      await user.save();
+      const partnerUser = await User.findById(partner);
+      partnerUser.chats = [...partnerUser.chats, newChat._id];
+      await partnerUser.save();
+      return newChat;
+    }
   }
-});
+};
 
 /**
  * Create a new message
@@ -67,7 +81,7 @@ const newMessage = asyncHandler(async (req: Request, res: Response) => {
     }
   } else {
     res.status(400);
-    throw new Error("Requirements not satisfied");
+    throw new Error('Requirements not satisfied');
   }
 });
 
@@ -81,7 +95,7 @@ const newMessage = asyncHandler(async (req: Request, res: Response) => {
 const getChatById = asyncHandler(async (req: Request, res: Response) => {
   const num = req.query.n || 30;
   const chat = Chat.findById(req.params.id)
-    .populate("messages")
+    .populate('messages')
     .exec(async (err, chatDoc) => {
       if (err) throw err;
       if (chatDoc?.members?.includes(req.user._id)) {
@@ -103,7 +117,7 @@ const getChatById = asyncHandler(async (req: Request, res: Response) => {
         res.json(chat);
       } else {
         res.status(403);
-        throw new Error("you can only get your own chats");
+        throw new Error('you can only get your own chats');
       }
     });
 });
@@ -137,7 +151,7 @@ const toggleBlockChat = asyncHandler(async (req: Request, res: Response) => {
     res.json(chat);
   } else {
     res.status(404);
-    throw new Error("Chat not found");
+    throw new Error('Chat not found');
   }
 });
 
@@ -152,10 +166,10 @@ const toggleBlockChat = asyncHandler(async (req: Request, res: Response) => {
 const getMyChats = asyncHandler(async (req: Request, res: Response) => {
   User.findById(req.user._id)
     .populate({
-      path: "chats",
+      path: 'chats',
       populate: {
-        path: "members",
-        model: "User",
+        path: 'members',
+        model: 'User',
         select: {
           bio: 0,
           lastName: 0,
@@ -169,7 +183,7 @@ const getMyChats = asyncHandler(async (req: Request, res: Response) => {
         },
       },
     })
-    .select("chats")
+    .select('chats')
     .exec((err: any, chats: any) => {
       res.json(chats);
     });
@@ -186,12 +200,12 @@ const getMyChats = asyncHandler(async (req: Request, res: Response) => {
 const chatByPartnerId = asyncHandler(async (req: Request, res: Response) => {
   const partner = req.params.id;
   Chat.findOne({ members: { $in: [req.user._id, partner] } })
-    .populate("messages")
-    .populate("members")
+    .populate('messages')
+    .populate('members')
     .exec((err, chatDocument) => {
       if (!chatDocument) {
         res.status(404);
-        throw new Error("Unable to find chat");
+        throw new Error('Unable to find chat');
       }
       const chat = chatDocument.toObject();
       const reversed = chat.messages.reverse();

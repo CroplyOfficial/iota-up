@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 // User Schema
 const UserSchema = new mongoose.Schema({
@@ -15,11 +15,11 @@ const UserSchema = new mongoose.Schema({
   lastName: {
     type: String,
     required: true,
-    default: "",
+    default: '',
   },
   avatar: {
     type: String,
-    default: "/images/defaultavatar.png",
+    default: '/images/defaultavatar.png',
   },
   email: {
     type: String,
@@ -54,7 +54,7 @@ const UserSchema = new mongoose.Schema({
     type: Array,
   },
   upvotedProjects: {
-    type: Array,
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Project' }],
     required: true,
     default: [],
   },
@@ -69,7 +69,7 @@ const UserSchema = new mongoose.Schema({
     default: [],
   },
   chats: {
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Chat" }],
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Chat' }],
     required: true,
     default: [],
   },
@@ -95,5 +95,5 @@ export interface UserType extends mongoose.Document {
   chats: mongoose.Schema.Types.ObjectId[];
 }
 
-const User = mongoose.model("User", UserSchema);
+const User = mongoose.model('User', UserSchema);
 export { User };
