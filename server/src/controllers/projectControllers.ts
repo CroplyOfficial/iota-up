@@ -1,13 +1,13 @@
-import { Project, IProjectModel } from "../models/Project";
-import asyncHandler from "express-async-handler";
-import { Request, Response } from "express";
-import mongoose from "mongoose";
-import { getArrayMatches } from "../utils/arrayUtils";
-import { Post } from "../models/Posts";
-import { User } from "../models/User";
-import { escapeRegex } from "../utils/searchFuzzyMatching";
-import fs from "fs";
-import path from "path";
+import { Project, IProjectModel } from '../models/Project';
+import asyncHandler from 'express-async-handler';
+import { Request, Response } from 'express';
+import mongoose from 'mongoose';
+import { getArrayMatches } from '../utils/arrayUtils';
+import { Post } from '../models/Posts';
+import { User } from '../models/User';
+import { escapeRegex } from '../utils/searchFuzzyMatching';
+import fs from 'fs';
+import path from 'path';
 
 interface IMatchedProject {
   matches?: number;
@@ -49,7 +49,7 @@ const createProject = asyncHandler(async (req: Request, res: Response) => {
     projectAuthor: req.user._id,
   }).catch((error) => {
     res.status(400);
-    throw new Error("unable to create project");
+    throw new Error('unable to create project');
   });
   const creator = await User.findById(req.user._id);
   creator.projects.push(project._id);
@@ -104,11 +104,11 @@ const editProject = asyncHandler(async (req: Request, res: Response) => {
       res.json(updatedProject);
     } else {
       res.status(403);
-      throw new Error("You do not own this project");
+      throw new Error('You do not own this project');
     }
   } else {
     res.status(404);
-    throw new Error("Project not found");
+    throw new Error('Project not found');
   }
 });
 
@@ -123,13 +123,13 @@ const editProject = asyncHandler(async (req: Request, res: Response) => {
 const indexProjects = asyncHandler(async (req: Request, res: Response) => {
   const query = req.query.q;
   if (query) {
-    const regex = new RegExp(escapeRegex(String(query)), "gi");
+    const regex = new RegExp(escapeRegex(String(query)), 'gi');
     const matchedProjects = await Project.find({ name: regex });
     res.json(matchedProjects);
   } else {
     const projects = await Project.find({}).catch((error) => {
       res.status(404);
-      throw new Error("Unable to find any projects");
+      throw new Error('Unable to find any projects');
     });
     res.json(projects);
   }
@@ -151,7 +151,7 @@ const toggleProjectLike = asyncHandler(async (req: Request, res: Response) => {
   const project: IProjectModel | null = await Project.findById(id).catch(
     (error) => {
       res.status(404);
-      throw new Error("Project not found");
+      throw new Error('Project not found');
     }
   );
 
@@ -159,7 +159,7 @@ const toggleProjectLike = asyncHandler(async (req: Request, res: Response) => {
     if (req.user.upvotedProjects.includes(id)) {
       project.upvotes--;
       const filtered = req.user.upvotedProjects.filter(
-        (projectId: string) => projectId !== id
+        (projectId: string) => String(projectId) !== String(id)
       );
       req.user.upvotedProjects = filtered;
     } else {
@@ -172,7 +172,7 @@ const toggleProjectLike = asyncHandler(async (req: Request, res: Response) => {
     res.json(req.user.upvotedProjects);
   } else {
     res.status(404);
-    throw new Error("Project not found");
+    throw new Error('Project not found');
   }
 });
 
@@ -189,7 +189,7 @@ const toggleProjectLike = asyncHandler(async (req: Request, res: Response) => {
 const trendingProjects = asyncHandler(async (req: Request, res: Response) => {
   const projects = await Project.find({}).catch((error) => {
     res.status(404);
-    throw new Error("No projects found");
+    throw new Error('No projects found');
   });
   const latestProjects = projects.filter((project: IProjectModel) => {
     const epochNow = new Date().getTime();
@@ -224,7 +224,7 @@ const addBackedProject = asyncHandler(async (req: Request, res: Response) => {
     res.json(req.user.backedProjects);
   } else {
     res.status(404);
-    throw new Error("Project not found");
+    throw new Error('Project not found');
   }
 });
 
@@ -264,7 +264,7 @@ const recommendedProjects = asyncHandler(
       res.json(filtered);
     } else {
       res.status(404);
-      throw new Error("No projects found");
+      throw new Error('No projects found');
     }
   }
 );
@@ -300,7 +300,7 @@ const getProjectById = asyncHandler(async (req: Request, res: Response) => {
     });
   } else {
     res.status(404);
-    throw new Error("Project not found");
+    throw new Error('Project not found');
   }
 });
 
@@ -323,7 +323,7 @@ const getProjectsByUser = asyncHandler(async (req: Request, res: Response) => {
     res.json(projects);
   } else {
     res.status(404);
-    throw new Error("No projects were found");
+    throw new Error('No projects were found');
   }
 });
 
@@ -341,9 +341,9 @@ const deleteProject = asyncHandler(async (req: Request, res: Response) => {
   if (project) {
     if (String(project.projectAuthor) !== String(req.user._id)) {
       res.status(403);
-      throw new Error("you can only delete your own projects");
+      throw new Error('you can only delete your own projects');
     }
-    const root = path.resolve("./");
+    const root = path.resolve('./');
     project.media.forEach(async (image) => {
       try {
         fs.unlinkSync(`${root}${image}`);
@@ -358,7 +358,7 @@ const deleteProject = asyncHandler(async (req: Request, res: Response) => {
     res.json(deleted);
   } else {
     res.status(404);
-    throw new Error("project not found");
+    throw new Error('project not found');
   }
 });
 
