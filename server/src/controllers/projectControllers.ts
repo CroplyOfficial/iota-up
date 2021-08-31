@@ -8,6 +8,8 @@ import { User } from '../models/User';
 import { escapeRegex } from '../utils/searchFuzzyMatching';
 import fs from 'fs';
 import path from 'path';
+import { match } from 'assert';
+import { findTopCategory } from '../utils/findTopLevelCategory';
 
 interface IMatchedProject {
   matches?: number;
@@ -122,10 +124,19 @@ const editProject = asyncHandler(async (req: Request, res: Response) => {
 
 const indexProjects = asyncHandler(async (req: Request, res: Response) => {
   const query = req.query.q;
+  const category = req.query.category;
   if (query) {
     const regex = new RegExp(escapeRegex(String(query)), 'gi');
     const matchedProjects = await Project.find({ name: regex });
-    res.json(matchedProjects);
+    let filtered = matchedProjects;
+    if (category) {
+      filtered = matchedProjects.filter((project) => {
+        return (
+          String(category).toLowerCase() === findTopCategory(project.category)
+        );
+      });
+    }
+    res.json(filtered);
   } else {
     const projects = await Project.find({}).catch((error) => {
       res.status(404);
