@@ -305,6 +305,7 @@ const getProjectById = asyncHandler(async (req: Request, res: Response) => {
       ...project._doc,
       posts,
       author: {
+        id: project.projectAuthor,
         username: projectAuthor.username,
         displayName: displayName,
         fullName: `${projectAuthor.firstName} ${projectAuthor.lastName}`,

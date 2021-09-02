@@ -5,6 +5,7 @@ import {
   newMessage,
   toggleBlockChat,
   tryNewChat,
+  deleteChatById,
 } from '../controllers/chatControllers';
 
 const rootSocket = (io: any) => {
@@ -44,6 +45,11 @@ const rootSocket = (io: any) => {
         const chat: any = await toggleBlockChat(token, chatId);
         if (!chat) return;
         io.in(chatId).emit('block', chat);
+      });
+
+      socket.on('delete', async ({ token }) => {
+        const deleted: any = await deleteChatById(token, chatId);
+        if (!deleted) return;
       });
     }
   });
