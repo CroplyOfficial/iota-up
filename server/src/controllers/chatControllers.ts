@@ -9,12 +9,16 @@ import dotenv from 'dotenv';
 
 dotenv.config({ path: '../' });
 const getCurrentUser = async (token: string) => {
-  const JWT_SECRET: any = process.env.JWT_SECRET;
-  const decoded: any = jwt.verify(token, JWT_SECRET);
-  const user = await User.findById(decoded.id);
-  if (!user.isBanned) {
-    return user;
-  } else {
+  try {
+    const JWT_SECRET: any = process.env.JWT_SECRET;
+    const decoded: any = jwt.verify(token, JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    if (!user.isBanned) {
+      return user;
+    } else {
+      return null;
+    }
+  } catch (JsonWebTokenError) {
     return null;
   }
 };
@@ -60,30 +64,27 @@ const tryNewChat = async (partner: string, token: string) => {
  * @return {Message}
  */
 
-const newMessage = asyncHandler(async (req: Request, res: Response) => {
-  const { chatId, content } = req.body;
-  if (chatId && content) {
-    const chat = await Chat.findById(chatId);
-    if (chat?.members?.includes(req.user._id) && !chat.isBlocked) {
+const newMessage = async (token: string, chatId: string, content: string) => {
+  const user = await getCurrentUser(token);
+  const chat = await Chat.findById(chatId);
+  if (chat?.members?.includes(user._id) && !chat.isBlocked) {
+    try {
       const encrypted = crypto.encrypt(content);
       const message = await Message.create({
-        sender: req.user._id,
+        sender: user._id,
         content: encrypted,
       });
       chat.messages = [...chat.messages, message._id];
       await chat.save();
-      res.json(message);
-    } else {
-      res.status(403);
-      throw new Error(
-        "You can't send messages to this chat, you have either been blocked or are not a part of it"
-      );
-    }
+
+      const msg: any = message.toObject();
+      msg.content = content;
+      return msg;
+    } catch (error) {}
   } else {
-    res.status(400);
-    throw new Error('Requirements not satisfied');
+    return null;
   }
-});
+};
 
 /**
  * Get a chat by ID
@@ -92,16 +93,15 @@ const newMessage = asyncHandler(async (req: Request, res: Response) => {
  * @returns {IChat}
  */
 
-const getChatById = asyncHandler(async (req: Request, res: Response) => {
-  const num = req.query.n || 30;
-  const chat = Chat.findById(req.params.id)
+const getChatById = async (token: string, chatId: string) => {
+  const user = await getCurrentUser(token);
+  return Chat.findById(chatId)
     .populate('messages')
-    .exec(async (err, chatDoc) => {
-      if (err) throw err;
-      if (chatDoc?.members?.includes(req.user._id)) {
+    .exec()
+    .then(async (chatDoc) => {
+      if (chatDoc?.members?.includes(user._id)) {
         const chat: any = chatDoc.toObject();
         chat.messages = chat.messages.reverse();
-        chat.messages = chat.messages.slice(-num);
         // ts doesn't understand populate would populat the
         // messages array to become IMessage[] hence the ignore
         // @ts-ignore
@@ -109,18 +109,18 @@ const getChatById = asyncHandler(async (req: Request, res: Response) => {
         chat.messages = msgs;
 
         const partnerId = chat.members?.filter(
-          (member: string) => String(member) !== String(req.user._id)
+          (member: string) => String(member) !== String(user._id)
         );
         const partner = await User.findById(partnerId);
         chat.partner = partner;
 
-        res.json(chat);
+        return chat;
       } else {
-        res.status(403);
-        throw new Error('you can only get your own chats');
+        return null;
       }
-    });
-});
+    })
+    .catch((error) => {});
+};
 
 /**
  * Update a chat to be blocked
@@ -130,30 +130,27 @@ const getChatById = asyncHandler(async (req: Request, res: Response) => {
  * @returns {Chat}
  */
 
-const toggleBlockChat = asyncHandler(async (req: Request, res: Response) => {
-  const chat = await Chat.findById(req.params.id);
-  if (chat && chat.members.includes(req.user._id)) {
+const toggleBlockChat = async (token: string, chatId: string) => {
+  const user = await getCurrentUser(token);
+  const chat = await Chat.findById(chatId);
+  if (chat && chat.members.includes(user._id)) {
     if (
       chat.isBlocked &&
       chat.blockedBy &&
-      String(chat.blockedBy) === String(req.user._id)
+      String(chat.blockedBy) === String(user._id)
     ) {
       chat.isBlocked = false;
       chat.blockedBy = null;
     } else if (!chat.isBlocked) {
       chat.isBlocked = true;
-      chat.blockedBy = req.user._id;
+      chat.blockedBy = user._id;
     } else {
-      res.status(403);
-      throw new Error("You can't unblock this chat");
+      return null;
     }
-    const saved = await chat.save();
-    res.json(chat);
-  } else {
-    res.status(404);
-    throw new Error('Chat not found');
+    await chat.save();
+    return chat;
   }
-});
+};
 
 /**
  * Get all the chats that the current user is a part of
@@ -163,8 +160,9 @@ const toggleBlockChat = asyncHandler(async (req: Request, res: Response) => {
  * @returns {Chat[]}
  */
 
-const getMyChats = asyncHandler(async (req: Request, res: Response) => {
-  User.findById(req.user._id)
+const getMyChats = async (token: string) => {
+  const user = await getCurrentUser(token);
+  return User.findById(user._id)
     .populate({
       path: 'chats',
       populate: {
@@ -184,10 +182,12 @@ const getMyChats = asyncHandler(async (req: Request, res: Response) => {
       },
     })
     .select('chats')
-    .exec((err: any, chats: any) => {
-      res.json(chats);
-    });
-});
+    .exec()
+    .then((chats: any) => {
+      return chats.chats;
+    })
+    .catch((error: any) => {});
+};
 
 /**
  * Get chats by partner ID

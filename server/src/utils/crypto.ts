@@ -1,6 +1,6 @@
-import crypto from "crypto";
-import path from "path";
-const algorithm = "aes-256-ctr";
+import crypto from 'crypto';
+import path from 'path';
+const algorithm = 'aes-256-ctr';
 const iv = crypto.randomBytes(16);
 
 interface IMessage {
@@ -25,13 +25,12 @@ export class CryptoUtil {
    */
 
   encrypt(text: string): { iv: string; content: string } {
-    console.log(this.encryptionSecret);
     const cipher = crypto.createCipheriv(algorithm, this.encryptionSecret, iv);
     const encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
 
     return {
-      iv: iv.toString("hex"),
-      content: encrypted.toString("hex"),
+      iv: iv.toString('hex'),
+      content: encrypted.toString('hex'),
     };
   }
 
@@ -46,11 +45,11 @@ export class CryptoUtil {
     const decipher = crypto.createDecipheriv(
       algorithm,
       this.encryptionSecret,
-      Buffer.from(hash.iv, "hex")
+      Buffer.from(hash.iv, 'hex')
     );
 
     const decrpyted = Buffer.concat([
-      decipher.update(Buffer.from(hash.content, "hex")),
+      decipher.update(Buffer.from(hash.content, 'hex')),
       decipher.final(),
     ]);
     return decrpyted.toString();
