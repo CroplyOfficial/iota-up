@@ -1,7 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
-import { Server, Socket } from 'socket.io';
 import * as http from 'http';
 import cors from 'cors';
 
@@ -15,13 +14,8 @@ import projectRoutes from './routes/projectRoutes';
 import postRoutes from './routes/postRoutes';
 import uploadRoutes from './routes/projectUploads';
 
-import {
-  getChatById,
-  getMyChats,
-  newMessage,
-  tryNewChat,
-} from './controllers/chatControllers';
-import { IChatModel } from './models/Chat';
+import { Server } from 'socket.io';
+import rootSocket from './utils/socket.io';
 
 connectToDB(process.env.MONGO_URI || '');
 const app = express();
@@ -58,42 +52,7 @@ const io = new Server(server, {
     origin: '*',
   },
 });
-
-io.on('connection', (socket: Socket) => {
-  const { chatId } = socket.handshake.query;
-  console.log('chatId', chatId);
-  if (chatId) {
-    socket.join(chatId);
-  }
-
-  socket.on('startChat', async ({ partner, token }) => {
-    const chat: any = await tryNewChat(partner, token);
-    if (!chat) return;
-    io.in(chat._id).emit('chat', chat);
-  });
-
-  socket.on('myChats', async ({ token }) => {
-    const chat: any = await getMyChats(token);
-    if (!chat) return;
-    socket.emit('chat', chat);
-  });
-
-  if (chatId) {
-    socket.on('getChat', async ({ token, chatId }) => {
-      const chat: any = await getChatById(token, chatId);
-      if (!chat) return;
-      socket.join(chat._id);
-      io.in(chatId).emit('messages', chat);
-    });
-
-    socket.on('newMessage', async ({ token, chatId, content }) => {
-      const message: any = await newMessage(token, chatId, content);
-      if (!message) return;
-      const chat: any = await getChatById(token, chatId);
-      io.in(chatId).emit('messages', chat);
-    });
-  }
-});
+rootSocket(io);
 
 const PORT = process.env.PORT || 5000;
 

@@ -125,9 +125,14 @@ const editProject = asyncHandler(async (req: Request, res: Response) => {
 const indexProjects = asyncHandler(async (req: Request, res: Response) => {
   const query = req.query.q;
   const category = req.query.category;
-  if (query) {
-    const regex = new RegExp(escapeRegex(String(query)), 'gi');
-    const matchedProjects = await Project.find({ name: regex });
+  if (query || category) {
+    let matchedProjects: any[];
+    if (query != undefined) {
+      const regex = new RegExp(escapeRegex(String(query)), 'gi');
+      matchedProjects = await Project.find({ name: regex });
+    } else {
+      matchedProjects = await Project.find({});
+    }
     let filtered = matchedProjects;
     if (category) {
       filtered = matchedProjects.filter((project) => {
