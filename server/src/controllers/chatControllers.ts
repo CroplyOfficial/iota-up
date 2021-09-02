@@ -227,5 +227,4 @@ export {
   toggleBlockChat,
   getMyChats,
   chatByPartnerId,
-  deleteChatById,
 };
