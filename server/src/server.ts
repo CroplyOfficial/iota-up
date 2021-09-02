@@ -15,7 +15,12 @@ import projectRoutes from './routes/projectRoutes';
 import postRoutes from './routes/postRoutes';
 import uploadRoutes from './routes/projectUploads';
 
-import { getMyChats, tryNewChat } from './controllers/chatControllers';
+import {
+  getChatById,
+  getMyChats,
+  newMessage,
+  tryNewChat,
+} from './controllers/chatControllers';
 import { IChatModel } from './models/Chat';
 
 connectToDB(process.env.MONGO_URI || '');
@@ -55,11 +60,16 @@ const io = new Server(server, {
 });
 
 io.on('connection', (socket: Socket) => {
+  const { chatId } = socket.handshake.query;
+  console.log('chatId', chatId);
+  if (chatId) {
+    socket.join(chatId);
+  }
+
   socket.on('startChat', async ({ partner, token }) => {
     const chat: any = await tryNewChat(partner, token);
     if (!chat) return;
-    socket.join(chat._id);
-    io.to(chat._id).emit('chat', chat);
+    io.in(chat._id).emit('chat', chat);
   });
 
   socket.on('myChats', async ({ token }) => {
@@ -67,6 +77,22 @@ io.on('connection', (socket: Socket) => {
     if (!chat) return;
     socket.emit('chat', chat);
   });
+
+  if (chatId) {
+    socket.on('getChat', async ({ token, chatId }) => {
+      const chat: any = await getChatById(token, chatId);
+      if (!chat) return;
+      socket.join(chat._id);
+      io.in(chatId).emit('messages', chat);
+    });
+
+    socket.on('newMessage', async ({ token, chatId, content }) => {
+      const message: any = await newMessage(token, chatId, content);
+      if (!message) return;
+      const chat: any = await getChatById(token, chatId);
+      io.in(chatId).emit('messages', chat);
+    });
+  }
 });
 
 const PORT = process.env.PORT || 5000;
