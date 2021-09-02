@@ -130,30 +130,27 @@ const getChatById = async (token: string, chatId: string) => {
  * @returns {Chat}
  */
 
-const toggleBlockChat = asyncHandler(async (req: Request, res: Response) => {
-  const chat = await Chat.findById(req.params.id);
-  if (chat && chat.members.includes(req.user._id)) {
+const toggleBlockChat = async (token: string, chatId: string) => {
+  const user = await getCurrentUser(token);
+  const chat = await Chat.findById(chatId);
+  if (chat && chat.members.includes(user._id)) {
     if (
       chat.isBlocked &&
       chat.blockedBy &&
-      String(chat.blockedBy) === String(req.user._id)
+      String(chat.blockedBy) === String(user._id)
     ) {
       chat.isBlocked = false;
       chat.blockedBy = null;
     } else if (!chat.isBlocked) {
       chat.isBlocked = true;
-      chat.blockedBy = req.user._id;
+      chat.blockedBy = user._id;
     } else {
-      res.status(403);
-      throw new Error("You can't unblock this chat");
+      return null;
     }
-    const saved = await chat.save();
-    res.json(chat);
-  } else {
-    res.status(404);
-    throw new Error('Chat not found');
+    await chat.save();
+    return chat;
   }
-});
+};
 
 /**
  * Get all the chats that the current user is a part of
@@ -230,4 +227,5 @@ export {
   toggleBlockChat,
   getMyChats,
   chatByPartnerId,
+  deleteChatById,
 };
