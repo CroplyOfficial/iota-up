@@ -216,7 +216,8 @@ const trendingProjects = asyncHandler(async (req: Request, res: Response) => {
   latestProjects.sort((a: IProjectModel, b: IProjectModel) => {
     return b.upvotes - a.upvotes;
   });
-  res.json(latestProjects);
+  const lastThree = projects.slice(-3);
+  res.json([...latestProjects, ...lastThree]);
 });
 
 /**
