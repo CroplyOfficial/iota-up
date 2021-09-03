@@ -20,20 +20,12 @@ import rootSocket from './utils/socket.io';
 connectToDB(process.env.MONGO_URI || '');
 const app = express();
 
-app.use(
-  cors({
-    origin: ['http://localhost:3000', 'http://localhost:5000', 'https://api.iotaup.com', 'https://iotaup.com', 'https://demo.iotaup.com'],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: [
-      'Origin',
-      'X-Requested-With',
-      'Content-Type',
-      'Accept',
-      'token',
-    ],
-  })
-);
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, PUT, POST");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
 
 const server = http.createServer(app);
 
