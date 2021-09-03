@@ -162,7 +162,7 @@ const toggleBlockChat = async (token: string, chatId: string) => {
 
 const getMyChats = async (token: string) => {
   const user = await getCurrentUser(token);
-  return User.findById(user._id)
+  return await User.findById(user._id)
     .populate({
       path: 'chats',
       populate: {
@@ -181,44 +181,55 @@ const getMyChats = async (token: string) => {
         },
       },
     })
+    .populate({
+      path: 'chats',
+      populate: {
+        path: 'messages',
+        model: 'Message',
+      },
+    })
     .select('chats')
     .exec()
-    .then((chats: any) => {
+    .then((chatsDoc: any) => {
+      const chats: any = chatsDoc.toObject();
+      chats.chats = chatsDoc.chats.map((chatDoc: any) => {
+        const chat = chatDoc.toObject();
+        let msgs = crypto.decryptMessageArray([
+          chat.messages[chat.messages.length - 1],
+        ]);
+        chat['messages'] = msgs;
+        chat.lastMessage = msgs[0];
+        return chat;
+      });
       return chats.chats;
     })
-    .catch((error: any) => {});
+    .catch((error: any) => {
+      console.error(error);
+    });
 };
 
-/**
- * Get chats by partner ID
- *
- * @route GET /api/chats/by-partner/:id
- * @access restricted bearer token
- * @returns {IChat}
- */
-
-const chatByPartnerId = asyncHandler(async (req: Request, res: Response) => {
-  const partner = req.params.id;
-  Chat.findOne({ members: { $in: [req.user._id, partner] } })
-    .populate('messages')
-    .populate('members')
-    .exec((err, chatDocument) => {
-      if (!chatDocument) {
-        res.status(404);
-        throw new Error('Unable to find chat');
-      }
-      const chat = chatDocument.toObject();
-      const reversed = chat.messages.reverse();
-      chat.messages = reversed.slice(30);
-      // ts doesn't understand populate would populat the
-      // messages array to become IMessage[] hence the ignore
-      // @ts-ignore
-      const msgs = crypto.decryptMessageArray(chat.messages);
-      chat.messages = msgs;
-
-      res.json(chat);
-    });
-});
+const deleteChatById = async (token: string, chatId: string) => {
+  const user = await getCurrentUser(token);
+  const chat = await Chat.findById(chatId);
+  if (chat?.members.includes(user._id)) {
+    const deleted = await Chat.findByIdAndDelete(chatId);
+    const partnerId: any = await deleted?.members.find(
+      (member: any) => member._id != user._id
+    );
+    const partner = await User.findById(partnerId);
+    const filteredChats = user.chats.filter(
+      (chat: any) => String(chatId) !== String(chat._id)
+    );
+    user.chats = filteredChats;
+    await user.save();
+    const filtered = partner.chats.filter(
+      (chat: any) => String(chatId) !== String(chat._id)
+    );
+    partner.chats = filtered;
+    await partner.save();
+    return deleted;
+  }
+};
 
 export {
   tryNewChat,
@@ -226,5 +237,5 @@ export {
   getChatById,
   toggleBlockChat,
   getMyChats,
-  chatByPartnerId,
+  deleteChatById,
 };

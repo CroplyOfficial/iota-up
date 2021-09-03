@@ -64,15 +64,21 @@ export class CryptoUtil {
 
   decryptMessageArray(messages: IMessage[]) {
     const msgs: any = [];
-    messages.forEach((message: IMessage) => {
-      const decrypted = this.decrypt(message.content);
-      msgs.push({
-        _id: message._id,
-        sender: message.sender,
-        date: message.date,
-        content: decrypted,
-      });
-    });
+    if (messages.length > 0) {
+      for (const message of messages) {
+        if (message?.content) {
+          const decrypted = this.decrypt(message.content);
+          msgs.push({
+            _id: message._id,
+            sender: message.sender,
+            date: message.date,
+            content: decrypted,
+          });
+        } else {
+          return msgs;
+        }
+      }
+    }
     return msgs;
   }
 }
