@@ -22,7 +22,13 @@ const app = express();
 
 app.use(
   cors({
-    origin: ['http://localhost:3000', 'http://localhost:5000', 'https://api.iotaup.com', 'https://iotaup.com', 'https://demo.iotaup.com'],
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:5000',
+      'https://api.iotaup.com',
+      'https://iotaup.com',
+      'https://demo.iotaup.com',
+    ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
@@ -51,7 +57,7 @@ const io = new Server(server, {
   cors: {
     origin: '*',
   },
-  transports: ['websocket', 'polling', 'flashsocket']
+  transports: ['websocket', 'polling'],
 });
 rootSocket(io);
 
