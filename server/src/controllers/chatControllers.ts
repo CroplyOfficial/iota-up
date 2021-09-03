@@ -38,9 +38,10 @@ const crypto = new CryptoUtil(process.env.SESSION_SECRET);
 const tryNewChat = async (partner: string, token: string) => {
   const user = await getCurrentUser(token);
   if (user) {
-    const chat = await Chat.findOne({
-      members: { $in: [user._id, partner] },
-    });
+    const chat = await Chat.findOne().and([
+      { members: { $in: [user._id] } },
+      { members: { $in: [partner] } },
+    ]);
     if (chat) {
       return chat;
     } else {
