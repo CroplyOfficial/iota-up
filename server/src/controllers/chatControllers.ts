@@ -45,6 +45,7 @@ const tryNewChat = async (partner: string, token: string) => {
     if (chat) {
       return chat;
     } else {
+      if (String(user._id) === partner) return null;
       const newChat = await Chat.create({
         members: [user._id, partner],
       });
@@ -82,6 +83,22 @@ const newMessage = async (token: string, chatId: string, content: string) => {
       msg.content = content;
       return msg;
     } catch (error) {}
+  } else {
+    return null;
+  }
+};
+
+const editMessage = async (
+  token: string,
+  messageId: string,
+  content: string
+) => {
+  const user = await getCurrentUser(token);
+  const message: any = await Message.findById(messageId);
+  if (String(message?.sender) == String(user._id)) {
+    const encrypted = crypto.encrypt(content);
+    message.content = encrypted;
+    return await message.save();
   } else {
     return null;
   }
@@ -239,4 +256,5 @@ export {
   toggleBlockChat,
   getMyChats,
   deleteChatById,
+  editMessage,
 };
