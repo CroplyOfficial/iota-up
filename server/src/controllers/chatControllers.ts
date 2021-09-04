@@ -219,6 +219,13 @@ const getMyChats = async (token: string) => {
         chat.lastMessage = msgs[0];
         return chat;
       });
+      chats.chats.sort((a: any, b: any) => {
+        try {
+          return b.messages[0].date - a.messages[0].date;
+        } catch {
+          return;
+        }
+      });
       return chats.chats;
     })
     .catch((error: any) => {
@@ -230,22 +237,27 @@ const deleteChatById = async (token: string, chatId: string) => {
   const user = await getCurrentUser(token);
   const chat = await Chat.findById(chatId);
   if (chat?.members.includes(user._id)) {
-    const deleted = await Chat.findByIdAndDelete(chatId);
-    const partnerId: any = await deleted?.members.find(
-      (member: any) => member._id != user._id
-    );
-    const partner = await User.findById(partnerId);
-    const filteredChats = user.chats.filter(
-      (chat: any) => String(chatId) !== String(chat._id)
-    );
-    user.chats = filteredChats;
-    await user.save();
-    const filtered = partner.chats.filter(
-      (chat: any) => String(chatId) !== String(chat._id)
-    );
-    partner.chats = filtered;
-    await partner.save();
-    return deleted;
+    try {
+      const deleted = await Chat.findByIdAndDelete(chatId);
+      const partnerId: any = await deleted?.members.find(
+        (member: any) => member._id != user._id
+      );
+      const partner = await User.findById(partnerId);
+      const filteredChats = user.chats.filter(
+        (chat: any) => String(chatId) !== String(chat._id)
+      );
+      user.chats = filteredChats;
+      await user.save();
+      const filtered = partner.chats.filter(
+        (chat: any) => String(chatId) !== String(chat._id)
+      );
+      partner.chats = filtered;
+
+      await partner.save();
+      return deleted;
+    } catch {
+      return;
+    }
   }
 };
 

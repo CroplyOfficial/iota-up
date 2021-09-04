@@ -19,7 +19,7 @@ const rootSocket = (io: any) => {
     socket.on('startChat', async ({ partner, token }) => {
       const chat: any = await tryNewChat(partner, token);
       if (!chat) return;
-      io.in(chat._id).emit('chat', chat);
+      socket.emit('chat', chat);
     });
 
     socket.on('myChats', async ({ token }) => {
