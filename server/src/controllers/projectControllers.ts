@@ -92,7 +92,6 @@ const editProject = asyncHandler(async (req: Request, res: Response) => {
   }: IReqBody = req.body;
   const project: IProjectModel | null = await Project.findById(req.params.id);
   if (project) {
-    console.log(project.projectAuthor, req.user.id);
     if (project.projectAuthor.toString() === req.user.id) {
       project.name = name ?? project.name;
       project.desc = desc ?? project.desc;
@@ -134,7 +133,9 @@ const indexProjects = asyncHandler(async (req: Request, res: Response) => {
       matchedProjects = await Project.find({});
     }
     let filtered = matchedProjects;
-    if (category) {
+
+    if (String(category) !== 'undefined') {
+      console.log(category);
       filtered = matchedProjects.filter((project) => {
         return (
           String(category).toLowerCase() === findTopCategory(project.category)
