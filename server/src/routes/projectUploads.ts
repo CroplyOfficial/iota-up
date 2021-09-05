@@ -35,7 +35,7 @@ const upload: any = multer({
   fileFilter: function (req, file, cb) {
     ensureIsSupported(file, cb);
   },
-  limits: { fileSize: 5 * 1024 * 1024, fieldSize: 3 * 1024 * 1024 },
+  limits: { fileSize: 5 * 1024 * 1024, fieldSize: 5 * 1024 * 1024 },
 });
 
 /**
