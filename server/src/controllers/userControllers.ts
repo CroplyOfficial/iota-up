@@ -315,6 +315,7 @@ const getUserOverview = asyncHandler(async (req: Request, res: Response) => {
       projects: user.projects,
       city: user.city,
       country: user.country,
+      wallet: user.wallet,
     });
   } else {
     res.status(404);
