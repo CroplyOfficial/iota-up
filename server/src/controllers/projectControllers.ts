@@ -142,6 +142,9 @@ const indexProjects = asyncHandler(async (req: Request, res: Response) => {
         );
       });
     }
+    filtered.sort((a: any, b: any) => {
+      return b.created.getTime() - a.created.getTime();
+    });
     res.json(filtered);
   } else {
     const projects = await Project.find({}).catch((error) => {
