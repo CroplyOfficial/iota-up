@@ -238,23 +238,20 @@ const deleteChatById = async (token: string, chatId: string) => {
   const chat = await Chat.findById(chatId);
   if (chat?.members.includes(user._id)) {
     try {
-      const deleted = await Chat.findByIdAndDelete(chatId);
-      const partnerId: any = await deleted?.members.find(
-        (member: any) => member._id != user._id
-      );
-      const partner = await User.findById(partnerId);
-      const filteredChats = user.chats.filter(
-        (chat: any) => String(chatId) !== String(chat._id)
-      );
-      user.chats = filteredChats;
-      await user.save();
-      const filtered = partner.chats.filter(
-        (chat: any) => String(chatId) !== String(chat._id)
-      );
-      partner.chats = filtered;
-
-      await partner.save();
-      return deleted;
+      const encrypted = crypto.encrypt('this message was deleted');
+      let update = {
+        $set: {
+          content: encrypted,
+        },
+      };
+      Message.updateMany(
+        {
+          $and: [{ _id: { $in: chat.messages } }, { sender: user._id }],
+        },
+        update
+      ).then((messages: any) => {
+        return;
+      });
     } catch {
       return;
     }

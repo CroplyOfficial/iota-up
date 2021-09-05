@@ -50,7 +50,8 @@ const rootSocket = (io: any) => {
 
       socket.on('delete', async ({ token }) => {
         const deleted: any = await deleteChatById(token, chatId);
-        if (!deleted) return;
+        const chat: any = await getChatById(token, chatId);
+        io.in(chatId).emit('messages', chat.messages);
       });
 
       socket.on(
