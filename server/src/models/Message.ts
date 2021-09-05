@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const messageSchema = new mongoose.Schema({
   sender: {
@@ -11,7 +11,7 @@ const messageSchema = new mongoose.Schema({
   },
   date: {
     type: Date,
-    default: Date.now(),
+    default: Date.now,
   },
 });
 
@@ -24,5 +24,5 @@ export interface IMessageSchema {
   date: Date;
 }
 
-const Message = mongoose.model<IMessageSchema>("Message", messageSchema);
+const Message = mongoose.model<IMessageSchema>('Message', messageSchema);
 export { Message };
