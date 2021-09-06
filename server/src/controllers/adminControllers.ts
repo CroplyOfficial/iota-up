@@ -44,6 +44,7 @@ const deleteProject = asyncHandler(async (req: Request, res: Response) => {
     );
     projectAuthor.projects = projects;
     await projectAuthor.save();
+    await Infraction.findByIdAndDelete(id);
     res.json(project);
   } else {
     res.status(404);
@@ -73,6 +74,7 @@ const banUser = asyncHandler(async (req: Request, res: Response) => {
     for (const project of user.projects) {
       await Project.findByIdAndDelete(project);
     }
+    await Infraction.findByIdAndDelete(id);
     res.json(user);
   } else {
     res.status(404);
@@ -80,4 +82,25 @@ const banUser = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
-export { indexInfractions, deleteProject, banUser };
+/**
+ * Remove infractions
+ *
+ * @access Admin Only
+ * @route /api/admin/ignore-infraction/:id
+ * @returns {IInfraction}
+ */
+
+const ignoreUserInfraction = asyncHandler(
+  async (req: Request, res: Response) => {
+    const id = req.params.id as string;
+    const infraction = await Infraction.findByIdAndDelete(id);
+    if (infraction) {
+      res.json(infraction);
+    } else {
+      res.status(404);
+      throw new Error('Infraction not found');
+    }
+  }
+);
+
+export { indexInfractions, deleteProject, banUser, ignoreUserInfraction };
