@@ -9,6 +9,7 @@ import { escapeRegex } from '../utils/searchFuzzyMatching';
 import fs from 'fs';
 import path from 'path';
 import { findTopCategory } from '../utils/findTopLevelCategory';
+import { Infraction } from '../models/infractions';
 
 interface IMatchedProject {
   matches?: number;
@@ -436,6 +437,39 @@ const deleteProject = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * Flag a project
+ *
+ * @route GET /api/projects/flag/:id
+ * @access Bearer Token
+ * @returns {IInfraction}
+ */
+
+const flagProject = asyncHandler(async (req: Request, res: Response) => {
+  const id = req.params.id as string;
+  const project = await Project.findById(id);
+  if (!project) {
+    res.status(404);
+    throw new Error('Project not found');
+  }
+  // @ts-ignore
+  const infractionExists = await Infraction.findOne({ project: id });
+  if (infractionExists) {
+    if (infractionExists.reporters.includes(req.user._id))
+      throw new Error('already reported');
+    infractionExists.reporters = [...infractionExists.reporters, req.user._id];
+    const infraction = await infractionExists.save();
+    res.json(infraction);
+  } else {
+    const infraction = await Infraction.create({
+      project: project._id,
+      convict: project?.projectAuthor,
+      reporters: [req.user._id],
+    });
+    res.json(infraction);
+  }
+});
+
 export {
   createProject,
   indexProjects,
@@ -447,4 +481,5 @@ export {
   editProject,
   getProjectsByUser,
   deleteProject,
+  flagProject,
 };
