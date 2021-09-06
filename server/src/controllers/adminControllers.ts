@@ -71,6 +71,7 @@ const banUser = asyncHandler(async (req: Request, res: Response) => {
       throw new Error('user is admin');
     }
     user.isBanned = true;
+    await user.save();
     for (const project of user.projects) {
       await Project.findByIdAndDelete(project);
     }
