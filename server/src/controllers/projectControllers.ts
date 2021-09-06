@@ -8,7 +8,6 @@ import { User } from '../models/User';
 import { escapeRegex } from '../utils/searchFuzzyMatching';
 import fs from 'fs';
 import path from 'path';
-import { match } from 'assert';
 import { findTopCategory } from '../utils/findTopLevelCategory';
 
 interface IMatchedProject {
@@ -24,6 +23,44 @@ interface IMatchedProject {
   media: Array<string>;
   created: Date;
 }
+
+const sortProjectsByOrder = (
+  order: 'newest' | 'oldest' | 'popular' | '!popular',
+  projects: any[]
+) => {
+  const sortByNewest = (projects: any[]) => {
+    return projects.sort((a: any, b: any) => {
+      return new Date(b.created).valueOf() - new Date(a.created).valueOf();
+    });
+  };
+  const sortByOldest = (projects: any[]) => {
+    return projects.sort((a: any, b: any) => {
+      return new Date(a.created).valueOf() - new Date(b.created).valueOf();
+    });
+  };
+  const sortByPopular = (projects: any[]) => {
+    return projects.sort((a: any, b: any) => {
+      return b.upvotes - a.upvotes;
+    });
+  };
+  const sortByLeastPopular = (projects: any[]) => {
+    return projects.sort((a: any, b: any) => {
+      return a.upvotes - b.upvotes;
+    });
+  };
+  switch (order) {
+    case 'newest':
+      return sortByNewest(projects);
+    case 'oldest':
+      return sortByOldest(projects);
+    case 'popular':
+      return sortByPopular(projects);
+    case '!popular':
+      return sortByLeastPopular(projects);
+    default:
+      return projects;
+  }
+};
 
 /**
  * create a new project route
@@ -122,11 +159,14 @@ const editProject = asyncHandler(async (req: Request, res: Response) => {
  */
 
 const indexProjects = asyncHandler(async (req: Request, res: Response) => {
-  const query = req.query.q;
-  const category = req.query.category;
-  if (query || category) {
+  const query = req.query.q as string;
+  const category = req.query.category as string;
+  const filters = req.query.filters as string;
+  const order = req.query.order as string;
+
+  if (query || category || filters || order) {
     let matchedProjects: any[];
-    if (query != undefined) {
+    if (String(query) !== 'undefined') {
       const regex = new RegExp(escapeRegex(String(query)), 'gi');
       matchedProjects = await Project.find({ name: regex });
     } else {
@@ -135,16 +175,28 @@ const indexProjects = asyncHandler(async (req: Request, res: Response) => {
     let filtered = matchedProjects;
 
     if (String(category) !== 'undefined') {
-      console.log(category);
       filtered = matchedProjects.filter((project) => {
         return (
           String(category).toLowerCase() === findTopCategory(project.category)
         );
       });
     }
-    filtered.sort((a: any, b: any) => {
-      return b.created.getTime() - a.created.getTime();
-    });
+
+    if (filters && String(filters) !== 'undefined') {
+      const categories = filters.split(',');
+      const filteredProjects = filtered.filter((project: any) => {
+        let matches: number = 0;
+        for (const category of project.category) {
+          if (categories.includes(category)) matches++;
+        }
+        return matches > 0;
+      });
+      filtered = filteredProjects;
+    }
+
+    const sortOrder: any = String(order) !== 'undefined' ? order : 'newest';
+    filtered = sortProjectsByOrder(sortOrder, filtered);
+
     res.json(filtered);
   } else {
     const projects = await Project.find({}).catch((error) => {
