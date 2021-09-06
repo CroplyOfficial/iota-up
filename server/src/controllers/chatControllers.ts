@@ -69,6 +69,7 @@ const tryNewChat = async (partner: string, token: string) => {
 const newMessage = async (token: string, chatId: string, content: string) => {
   const user = await getCurrentUser(token);
   const chat = await Chat.findById(chatId);
+  if (!user) return;
   if (chat?.members?.includes(user._id) && !chat.isBlocked) {
     try {
       const encrypted = crypto.encrypt(content);
@@ -94,6 +95,7 @@ const editMessage = async (
   content: string
 ) => {
   const user = await getCurrentUser(token);
+  if (!user) return;
   const message: any = await Message.findById(messageId);
   if (String(message?.sender) == String(user._id)) {
     const encrypted = crypto.encrypt(content);
@@ -113,6 +115,7 @@ const editMessage = async (
 
 const getChatById = async (token: string, chatId: string) => {
   const user = await getCurrentUser(token);
+  if (!user) return;
   return Chat.findById(chatId)
     .populate('messages')
     .exec()
@@ -150,6 +153,7 @@ const getChatById = async (token: string, chatId: string) => {
 
 const toggleBlockChat = async (token: string, chatId: string) => {
   const user = await getCurrentUser(token);
+  if (!user) return;
   const chat = await Chat.findById(chatId);
   if (chat && chat.members.includes(user._id)) {
     if (
@@ -180,6 +184,7 @@ const toggleBlockChat = async (token: string, chatId: string) => {
 
 const getMyChats = async (token: string) => {
   const user = await getCurrentUser(token);
+  if (!user) return;
   return await User.findById(user._id)
     .populate({
       path: 'chats',
@@ -235,6 +240,7 @@ const getMyChats = async (token: string) => {
 
 const deleteChatById = async (token: string, chatId: string) => {
   const user = await getCurrentUser(token);
+  if (!user) return;
   const chat = await Chat.findById(chatId);
   if (chat?.members.includes(user._id)) {
     try {
