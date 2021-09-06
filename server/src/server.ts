@@ -13,6 +13,7 @@ import userRoutes from './routes/userRoutes';
 import projectRoutes from './routes/projectRoutes';
 import postRoutes from './routes/postRoutes';
 import uploadRoutes from './routes/projectUploads';
+import adminRoutes from './routes/adminRoutes';
 
 import { Server } from 'socket.io';
 import rootSocket from './utils/socket.io';
@@ -49,6 +50,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/uploads', uploadRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 
 app.use(errorHandler);
