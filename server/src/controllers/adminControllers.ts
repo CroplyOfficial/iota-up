@@ -120,16 +120,13 @@ const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
 /**
  * Ban a specific user
  *
- * @route /api/admin/ban-user/:id
+ * @route /api/admin/ban-user-by-id/:id
  * @access Admin Only
  * @returns {IUserModel}
  */
 
 const banUserById = asyncHandler(async (req: Request, res: Response) => {
-  interface IBody {
-    id: string;
-  }
-  const { id } = req.body as IBody;
+  const id = req.params.id as string;
   const user = await User.findById(id);
   if (user) {
     if (user.isAdmin) {
