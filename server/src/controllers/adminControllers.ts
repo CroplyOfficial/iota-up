@@ -113,8 +113,12 @@ const ignoreUserInfraction = asyncHandler(
  */
 
 const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
-  const users = await User.find({});
-  res.json(users);
+  User.find({})
+    .populate('projects')
+    .exec()
+    .then((users: any) => {
+      res.json(users);
+    });
 });
 
 /**

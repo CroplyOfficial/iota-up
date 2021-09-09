@@ -64,7 +64,7 @@ const UserSchema = new mongoose.Schema({
     default: [],
   },
   projects: {
-    type: Array,
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Project' }],
     required: true,
     default: [],
   },
