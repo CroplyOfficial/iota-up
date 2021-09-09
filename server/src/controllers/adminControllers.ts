@@ -104,4 +104,52 @@ const ignoreUserInfraction = asyncHandler(
   }
 );
 
-export { indexInfractions, deleteProject, banUser, ignoreUserInfraction };
+/**
+ * List all users
+ *
+ * @route /api/admin/list-users
+ * @access Admin Only
+ * @returns {IUserModel[]}
+ */
+
+const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
+  const users = await User.find({});
+  res.json(users);
+});
+
+/**
+ * Ban a specific user
+ *
+ * @route /api/admin/ban-user-by-id/:id
+ * @access Admin Only
+ * @returns {IUserModel}
+ */
+
+const banUserById = asyncHandler(async (req: Request, res: Response) => {
+  const id = req.params.id as string;
+  const user = await User.findById(id);
+  if (user) {
+    if (user.isAdmin) {
+      res.status(403);
+      throw new Error('user is admin');
+    }
+    user.isBanned = true;
+    await user.save();
+    for (const project of user.projects) {
+      await Project.findByIdAndDelete(project);
+    }
+    res.json(user);
+  } else {
+    res.status(404);
+    throw new Error('user not found');
+  }
+});
+
+export {
+  indexInfractions,
+  deleteProject,
+  banUser,
+  ignoreUserInfraction,
+  getAllUsers,
+  banUserById,
+};

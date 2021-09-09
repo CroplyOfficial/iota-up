@@ -52,6 +52,7 @@ const tryNewChat = async (partner: string, token: string) => {
       user.chats = [...user.chats, newChat._id];
       await user.save();
       const partnerUser = await User.findById(partner);
+      if (partnerUser.isBanned) return null;
       partnerUser.chats = [...partnerUser.chats, newChat._id];
       await partnerUser.save();
       return newChat;
